@@ -10,28 +10,31 @@ import Dashboard from '@/pages/Dashboard';
 import Profile from '@/pages/Profile';
 import Authenticate from './pages/Login';
 
-
+// กำหนด PrivateRoute เพื่อเช็คสิทธิ์การเข้าถึง
 const PrivateRoute = ({ children }: { children: JSX.Element }) => {
-  const isAuthenticated = localStorage.getItem('auth')
-  return isAuthenticated === "true" ? children : <Navigate to="/login" />;
+  const isAuthenticated = localStorage.getItem('auth') === "true";
+  return isAuthenticated ? children : <Navigate to="/login" />;
 };
 
-// ใช้งานใน App Component
+// App Component
 const App: React.FC = () => {
   return (
     <Routes>
-      <Route path="/" element={<Home />} />
-      <Route path="/chat" element={<Chat />} />
-      <Route path="/404" element={<NotFound />} />
       <Route path="/login" element={<Authenticate />} />
-      <Route path="/find-friend" element={<FindFriend />} />
-      <Route path="/find-group" element={<FindGroup />} />
-      <Route path="/create-group" element={<CreateGroup />} />
+      
+      {/* หน้าอื่นที่ต้องการการตรวจสอบสิทธิ์ */}
+      <Route path="/" element={<PrivateRoute><Home /></PrivateRoute>} />
+      <Route path="/chat" element={<PrivateRoute><Chat /></PrivateRoute>} />
+      <Route path="/find-friend" element={<PrivateRoute><FindFriend /></PrivateRoute>} />
+      <Route path="/find-group" element={<PrivateRoute><FindGroup /></PrivateRoute>} />
+      <Route path="/create-group" element={<PrivateRoute><CreateGroup /></PrivateRoute>} />
       <Route path="/dashboard" element={<PrivateRoute><Dashboard /></PrivateRoute>} />
-      <Route path="/profile" element={<Profile />} />
+      <Route path="/profile" element={<PrivateRoute><Profile /></PrivateRoute>} />
+
+      {/* กรณีที่ไม่พบหน้า */}
+      <Route path="*" element={<NotFound />} />
     </Routes>
   );
 }
-
 
 export default App;
