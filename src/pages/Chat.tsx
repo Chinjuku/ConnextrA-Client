@@ -6,10 +6,11 @@ import { Link } from "react-router-dom";
 import { Search, MessageSquare, Users, UserPlus } from "lucide-react";
 import Navigation from '@/components/Nav';
 import ChatWindow from "@/components/ChatWindow";
+import ChatInfo from "@/components/ChatInfo";
 
 export default function Chat() {
   const [isChatOpen, setIsChatOpen] = useState(false); // Toggle chat window
-  const friends: [] = []; // Replace with your friends' data
+  const friends = [{ id: 1, name: "Pisol Uattankanjana" }];
 
   const renderFriendList = () => {
     return friends.length > 0 ? (
@@ -97,6 +98,7 @@ export default function Chat() {
             </div>
           ) : (
             <ChatWindow />
+            
           )}
         </main>
       </div>
