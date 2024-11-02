@@ -29,7 +29,7 @@ export const UserProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     const fetchUserData = async () => {
         if (isAuthenticated) {
             try {
-                const response = await axios.get('http://localhost:3000/user/protected-route', {
+                const response = await axios.get(`${import.meta.env.VITE_BACKEND_URL}/user/protected-route`, {
                     headers: {
                         Authorization: `Bearer ${localStorage.getItem('accessToken')}`,
                     },
@@ -49,7 +49,7 @@ export const UserProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     const refreshToken = async () => {
         if (isAuthenticated) {
             try {
-                const response = await axios.post('http://localhost:3000/auth/refresh-token', {
+                const response = await axios.post(`${import.meta.env.VITE_BACKEND_URL}/auth/refresh-token`, {
                     refreshToken: localStorage.getItem("refreshToken") as string,
                 });
                 const { accessToken } = response.data;
