@@ -1,6 +1,5 @@
 import React from 'react';
 import { Route, Routes, Navigate } from 'react-router-dom';
-import Home from '@/pages/Home';
 import Chat from '@/pages/Chat';
 import FindFriend from '@/pages/FindFriend';
 import NotFound from '@/pages/404';
@@ -9,10 +8,12 @@ import CreateGroup from '@/pages/CreateGroup';
 import Dashboard from '@/pages/Dashboard';
 import Profile from '@/pages/Profile';
 import Authenticate from './pages/Login';
+import { useContext } from 'react';
+import { UserContext } from '@/context/UserContext';
 
 // กำหนด PrivateRoute เพื่อเช็คสิทธิ์การเข้าถึง
 const PrivateRoute = ({ children }: { children: JSX.Element }) => {
-  const isAuthenticated = localStorage.getItem('auth') === "true";
+  const { isAuthenticated } = useContext(UserContext);
   return isAuthenticated ? children : <Navigate to="/login" />;
 };
 
@@ -23,7 +24,6 @@ const App: React.FC = () => {
       <Route path="/login" element={<Authenticate />} />
       
       {/* หน้าอื่นที่ต้องการการตรวจสอบสิทธิ์ */}
-      <Route path="/" element={<PrivateRoute><Home /></PrivateRoute>} />
       <Route path="/chat" element={<PrivateRoute><Chat /></PrivateRoute>} />
       <Route path="/find-friend" element={<PrivateRoute><FindFriend /></PrivateRoute>} />
       <Route path="/find-group" element={<PrivateRoute><FindGroup /></PrivateRoute>} />

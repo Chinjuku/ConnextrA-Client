@@ -17,17 +17,18 @@ export const Login = () => {
   
   const login = useGoogleLogin({
     onSuccess: async (codeResponse) => {
+      console.log(import.meta.env.VITE_BACKEND_URL)
       try {
         console.log(codeResponse)
-        const res = await axios.post<Token>('http://localhost:3000/auth/login', {
+        const res = await axios.post<Token>(`${import.meta.env.VITE_BACKEND_URL}/auth/login`, {
           access_token: codeResponse.access_token
         });
         localStorage.setItem("accessToken", res.data.accessToken);
         localStorage.setItem("refreshToken", res.data.refreshToken);
-        localStorage.setItem("auth", 'true');
-        setAuthenticated("true")
+        setAuthenticated(true)
+        console.log(res.data.user)
         setUserData(res.data.user)
-        navigate('/dashboard');
+        navigate('/chat');
       } catch (error) {
         console.error("Login error:", error);
       }

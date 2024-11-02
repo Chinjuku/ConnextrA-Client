@@ -3,15 +3,15 @@ import axios from 'axios';
 import { User } from '@/types/user.types';
 
 interface UserContextProps {
-    isAuthenticated: "true" | "false";
-    setAuthenticated: (value: "true" | "false") => void;
+    isAuthenticated: boolean;
+    setAuthenticated: (value: boolean) => void;
     userData: User | null;
     setUserData: (value: User | null) => void;
     refreshToken: () => Promise<void>;
 }
 
 const UserContextDefaultValues: UserContextProps = {
-    isAuthenticated: "false",
+    isAuthenticated: false,
     setAuthenticated: () => {},
     userData: null,
     setUserData: () => {},
@@ -21,61 +21,73 @@ const UserContextDefaultValues: UserContextProps = {
 export const UserContext = createContext<UserContextProps>(UserContextDefaultValues);
 
 export const UserProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-    const [isAuthenticated, setAuthenticated] = useState<"true" | "false">(() => 
-        localStorage.getItem("auth") === 'true' ? "true" : "false"
+    const [isAuthenticated, setAuthenticated] = useState<boolean>(() => 
+        localStorage.getItem("auth") === 'true'
     );
     const [userData, setUserData] = useState<User | null>(null);
 
     const fetchUserData = async () => {
-        if (isAuthenticated === "true") {
+        if (isAuthenticated) {
             try {
-                const response = await axios.get('/user/protected-route');
-                setUserData(response.data);
+                const response = await axios.get('http://localhost:3000/user/protected-route', {
+                    headers: {
+                        Authorization: `Bearer ${localStorage.getItem('accessToken')}`,
+                    },
+                });
+                setUserData(response.data.user);
             } catch (error) {
                 console.error('Error fetching user data:', error);
-                // If we get an error fetching user data, we should probably log out
-                setAuthenticated("false");
+                setAuthenticated(false);
                 localStorage.removeItem("auth");
+                localStorage.removeItem("accessToken");
+                localStorage.removeItem("refreshToken");
                 setUserData(null);
             }
         }
     };
 
     const refreshToken = async () => {
-        if (isAuthenticated === "true") {
+        if (isAuthenticated) {
             try {
-                const response = await axios.post('/auth/refresh-token', {
+                const response = await axios.post('http://localhost:3000/auth/refresh-token', {
                     refreshToken: localStorage.getItem("refreshToken") as string,
                 });
-                const { token } = response.data;
-                axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+                const { accessToken } = response.data;
+                console.log(accessToken)
+                localStorage.setItem("accessToken", accessToken);
+                // Set the default header for future requests
+                axios.defaults.headers.common['Authorization'] = `Bearer ${accessToken}`;
                 await fetchUserData();
             } catch (error) {
                 console.error('Error refreshing token:', error);
-                setAuthenticated("false");
+                setAuthenticated(false);
                 localStorage.removeItem("auth");
+                localStorage.removeItem("accessToken");
+                localStorage.removeItem("refreshToken");
                 setUserData(null);
             }
         }
     };
 
     useEffect(() => {
-        fetchUserData();
-        // Set up refresh token interval
-        const interval = setInterval(refreshToken, 1000 * 60 * 5); // Every 5 minutes
-        
-        return () => clearInterval(interval);
-    }, [localStorage.getItem("auth")]); // Re-run when authentication status changes
+        if (isAuthenticated) {
+            fetchUserData();
+            const interval = setInterval(refreshToken, 1000 * 60 * 5); // Every 5 minutes
+            return () => clearInterval(interval);
+        }
+    }, [isAuthenticated]); // Only run when authentication status changes
 
     // Update localStorage when authentication status changes
     useEffect(() => {
-        if (localStorage.getItem("auth")) {
-            fetchUserData()
-        } else {
-            localStorage.removeItem("auth");
+        localStorage.setItem("auth", String(isAuthenticated));
+        if (!isAuthenticated) {
             setUserData(null);
+            localStorage.removeItem("accessToken");
+            localStorage.removeItem("refreshToken");
+        } else {
+            fetchUserData();
         }
-    }, [localStorage.getItem("auth")]);
+    }, [isAuthenticated]);
 
     return (
         <UserContext.Provider value={{ isAuthenticated, setAuthenticated, userData, setUserData, refreshToken }}>

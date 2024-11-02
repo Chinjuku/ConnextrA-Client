@@ -1,6 +1,4 @@
-"use client"
-
-import { useState } from "react"
+import { useContext, useState } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Checkbox } from "@/components/ui/checkbox"
@@ -8,6 +6,7 @@ import { Button } from "@/components/ui/button"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Search, Trash2 } from "lucide-react"
 import Nav from "@/components/Nav"
+import { UserContext } from "@/context/UserContext"
 
 interface User {
     id: string
@@ -24,6 +23,8 @@ const users: User[] = [
 ]
 
 export default function Dashboard() {
+    const { userData , isAuthenticated } = useContext(UserContext)
+    console.log(userData, isAuthenticated)
     const [selectedUsers, setSelectedUsers] = useState<string[]>([])
     const [selectedGroups, setSelectedGroups] = useState<string[]>([])
     const [searchUsers, setSearchUsers] = useState("")

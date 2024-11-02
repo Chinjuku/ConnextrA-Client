@@ -10,6 +10,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { Logout } from '@/components/Logout';
 
 const Navigation = () => {
   const location = useLocation();
@@ -74,6 +75,7 @@ const Navigation = () => {
                 <DropdownMenuItem className='cursor-pointer'>Billing</DropdownMenuItem>
                 <DropdownMenuItem className='cursor-pointer'>Team</DropdownMenuItem>
                 <Link to="/dashboard"><DropdownMenuItem className='cursor-pointer'>Dashboard</DropdownMenuItem></Link>
+                <Logout />
             </DropdownMenuContent>
           </DropdownMenu>
           <div className="flex items-center gap-2">
