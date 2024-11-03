@@ -40,3 +40,13 @@ export const addFriend = async (userId: number, friendId: number) => {
   });
   return response.data;
 };
+
+export const allUsers = async () => {
+    const response = await axios.get(`${API_BASE_URL}/user/`);
+    return response.data;
+}
+
+export const allGroups = async () => {
+    const response = await axios.get(`${API_BASE_URL}/group/`);
+    return response.data;
+}

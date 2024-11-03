@@ -1,4 +1,4 @@
-import { useContext, useState } from "react"
+import { useEffect, useState } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Checkbox } from "@/components/ui/checkbox"
@@ -6,39 +6,36 @@ import { Button } from "@/components/ui/button"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Search, Trash2 } from "lucide-react"
 import Nav from "@/components/Nav"
-import { UserContext } from "@/context/UserContext"
-
-interface User {
-    id: string
-    name: string
-    avatar: string
-    online?: boolean
-}
-
-const users: User[] = [
-    { id: "1", name: "Pisol Uttaganjana", avatar: "/placeholder.svg?height=32&width=32", online: true },
-    { id: "2", name: "Puttaraporn Jitpranee", avatar: "/placeholder.svg?height=32&width=32", online: true },
-    { id: "3", name: "Hello Kitty", avatar: "/placeholder.svg?height=32&width=32" },
-    { id: "4", name: "Sherlock Holmes", avatar: "/placeholder.svg?height=32&width=32" },
-]
+import { allGroups, allUsers } from "@/api/user"
+import { User } from "@/types/user.types"
+import { Group } from "@/types/group.type"
 
 export default function Dashboard() {
-    const { userData , isAuthenticated } = useContext(UserContext)
-    console.log(userData, isAuthenticated)
-    const [selectedUsers, setSelectedUsers] = useState<string[]>([])
-    const [selectedGroups, setSelectedGroups] = useState<string[]>([])
+    const [users, setUsers] = useState<User[]>([])
+    const [groups, setGroups] = useState<Group[]>([])
+    const [selectedUsers, setSelectedUsers] = useState<number[]>([])
+    const [selectedGroups, setSelectedGroups] = useState<number[]>([])
     const [searchUsers, setSearchUsers] = useState("")
     const [searchGroups, setSearchGroups] = useState("")
-    const [searchReports, setSearchReports] = useState("")
-    const [showRead, setShowRead] = useState(false)
-    const [showUnread, setShowUnread] = useState(false)
 
+    useEffect(() => {
+        const fetchUsers = async () => {
+            const res = await allUsers()
+            const res_group = await allGroups()
+            setUsers(res)
+            setGroups(res_group)
+        }
+        fetchUsers()
+    }, [])
+
+    console.log(users)
     const filteredUsers = users.filter(user =>
-        user.name.toLowerCase().includes(searchUsers.toLowerCase())
+        user.given_name && user.given_name.toLowerCase().includes(searchUsers.toLowerCase()) ||
+        user.family_name && user.family_name.toLowerCase().includes(searchUsers.toLowerCase())
     )
 
-    const filteredGroups = users.filter(user =>
-        user.name.toLowerCase().includes(searchGroups.toLowerCase())
+    const filteredGroups = groups.filter(user =>
+        user.name && user.name.toLowerCase().includes(searchUsers.toLowerCase())
     )
 
     const handleDeleteUsers = () => {
@@ -48,6 +45,8 @@ export default function Dashboard() {
     const handleDeleteGroups = () => {
         setSelectedGroups([]);
     }
+
+    const count = Math.floor(Math.random() * users.length)
 
     return (
         <div className="bg-gray-50">
@@ -71,9 +70,13 @@ export default function Dashboard() {
                         </CardHeader>
                         <CardContent>
                             <p className="text-xs text-muted-foreground">
-                                1140 users
-                                <span className="ml-2 text-green-500">20 online</span>
-                                <span className="ml-2">1120 offline</span>
+                                {users.length} users
+                                <span className="ml-2 text-green-500">
+                                    {count} online
+                                </span>
+                                <span className="ml-2 text-red-600">
+                                    {users.length - count} offline
+                                </span>
                             </p>
                             <div className="mt-4">
                                 <div className="relative">
@@ -99,13 +102,13 @@ export default function Dashboard() {
                                                 }}
                                             />
                                             <Avatar className="h-8 w-8">
-                                                <AvatarImage src={user.avatar} alt={user.name} />
-                                                <AvatarFallback>{user.name[0]}</AvatarFallback>
+                                                <AvatarImage src={user.image_url} alt={user.image_url} />
+                                                <AvatarFallback>{user.given_name} {user.family_name}</AvatarFallback>
                                             </Avatar>
-                                            <div className="flex-1 truncate">{user.name}</div>
-                                            {user.online && (
+                                            <div className="flex-1 truncate">{user.given_name} {user.family_name}</div>
+                                            {/* {user && (
                                                 <div className="h-2 w-2 rounded-full bg-green-500" />
-                                            )}
+                                            )} */}
                                         </div>
                                     ))}
                                 </div>
@@ -126,7 +129,7 @@ export default function Dashboard() {
                             )}
                         </CardHeader>
                         <CardContent>
-                            <p className="text-xs text-muted-foreground">1140 groups</p>
+                            <p className="text-xs text-muted-foreground">{groups.length} groups</p>
                             <div className="mt-4">
                                 <div className="relative">
                                     <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
@@ -151,7 +154,7 @@ export default function Dashboard() {
                                                 }}
                                             />
                                             <Avatar className="h-8 w-8">
-                                                <AvatarImage src={group.avatar} alt={group.name} />
+                                                <AvatarImage src={""} alt={group.name} />
                                                 <AvatarFallback>{group.name[0]}</AvatarFallback>
                                             </Avatar>
                                             <div className="flex-1 truncate">{group.name}</div>
@@ -164,7 +167,7 @@ export default function Dashboard() {
                     </Card>
 
                     {/* Reports Section */}
-                    <Card className="md:col-span-2">
+                    {/* <Card className="md:col-span-2">
                         <CardHeader>
                             <CardTitle className="text-2xl font-bold">Report Submitted</CardTitle>
                         </CardHeader>
@@ -225,7 +228,7 @@ export default function Dashboard() {
                                 ))}
                             </div>
                         </CardContent>
-                    </Card>
+                    </Card> */}
                 </div>
             </div>
         </div>

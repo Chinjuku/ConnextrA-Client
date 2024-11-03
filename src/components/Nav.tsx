@@ -1,5 +1,5 @@
 import { useContext } from "react";
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation } from "react-router-dom";
 import { MessageSquare, Settings } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -11,13 +11,14 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Logout } from '@/components/Logout';
+import { Logout } from "@/components/Logout";
 import { UserContext } from "@/context/UserContext";
 
 const Navigation = () => {
-  const { userData, isAuthenticated } = useContext(UserContext);
+  const { userData } = useContext(UserContext);
   const location = useLocation();
   const userId = userData?.id; // สมมติว่า userData มี userId อยู่
+  console.log(userData?.role)
 
   return (
     <header className="border-b">
@@ -28,7 +29,9 @@ const Navigation = () => {
           </div>
           <div>
             <h1 className="text-xl font-bold text-indigo-950">Connextra</h1>
-            <p className="text-xs text-muted-foreground">create for cloud-computing project</p>
+            <p className="text-xs text-muted-foreground">
+              create for cloud-computing project
+            </p>
           </div>
         </div>
 
@@ -36,9 +39,9 @@ const Navigation = () => {
           <Link
             to="/chat"
             className={`pb-1 font-medium ${
-              location.pathname === '/chat' 
-                ? 'text-indigo-950 border-b-2 border-indigo-950' 
-                : 'text-muted-foreground hover:text-indigo-950'
+              location.pathname === "/chat"
+                ? "text-indigo-950 border-b-2 border-indigo-950"
+                : "text-muted-foreground hover:text-indigo-950"
             }`}
           >
             Chat
@@ -46,9 +49,9 @@ const Navigation = () => {
           <Link
             to={`/find-friend/${userId}`} // ใช้ userId ในลิงก์
             className={`pb-1 font-medium ${
-              location.pathname.startsWith('/find-friend') // เปลี่ยนเพื่อรองรับพาธที่มี userId
-                ? 'text-indigo-950 border-b-2 border-indigo-950' 
-                : 'text-muted-foreground hover:text-indigo-950'
+              location.pathname.startsWith("/find-friend") // เปลี่ยนเพื่อรองรับพาธที่มี userId
+                ? "text-indigo-950 border-b-2 border-indigo-950"
+                : "text-muted-foreground hover:text-indigo-950"
             }`}
           >
             Find Friend
@@ -56,13 +59,27 @@ const Navigation = () => {
           <Link
             to="/find-group"
             className={`pb-1 font-medium ${
-              location.pathname === '/find-group' 
-                ? 'text-indigo-950 border-b-2 border-indigo-950' 
-                : 'text-muted-foreground hover:text-indigo-950'
+              location.pathname === "/find-group"
+                ? "text-indigo-950 border-b-2 border-indigo-950"
+                : "text-muted-foreground hover:text-indigo-950"
             }`}
           >
             Find Group
           </Link>
+          {userData?.role === "admin" ? (
+            <Link
+              to="/dashboard"
+              className={`pb-1 font-medium ${
+                location.pathname === "/dashboard"
+                  ? "text-indigo-950 border-b-2 border-indigo-950"
+                  : "text-muted-foreground hover:text-indigo-950"
+              }`}
+            >
+              Dashboard
+            </Link>
+          ) : (
+            ""
+          )}
         </nav>
 
         <div className="flex items-center gap-3">
@@ -75,21 +92,31 @@ const Navigation = () => {
             <DropdownMenuContent>
               <DropdownMenuLabel>My Account</DropdownMenuLabel>
               <DropdownMenuSeparator />
-              <Link to='/profile'><DropdownMenuItem className='cursor-pointer'>Profile</DropdownMenuItem></Link>
-              <Link to="/dashboard"><DropdownMenuItem className='cursor-pointer'>Dashboard</DropdownMenuItem></Link>
+              <Link to="/profile">
+                <DropdownMenuItem className="cursor-pointer">
+                  Profile
+                </DropdownMenuItem>
+              </Link>
               <Logout />
             </DropdownMenuContent>
           </DropdownMenu>
           <div className="flex items-center gap-2">
             <Avatar>
-              <AvatarImage src={userData?.image_url || "/placeholder-user.jpg"} alt={userData?.given_name || "User"} />
-              <AvatarFallback>{userData?.given_name?.[0] || "U"}</AvatarFallback>
+              <AvatarImage
+                src={userData?.image_url || "/placeholder-user.jpg"}
+                alt={userData?.given_name || "User"}
+              />
+              <AvatarFallback>
+                {userData?.given_name?.[0] || "U"}
+              </AvatarFallback>
             </Avatar>
             <div className="text-sm">
-            <p className="font-medium">
-  {userData?.given_name + ' ' + userData?.family_name || "User"}
-</p>
-              <p className="text-xs text-muted-foreground">{userData?.email || "User Email"}</p>
+              <p className="font-medium">
+                {userData?.given_name + " " + userData?.family_name || "User"}
+              </p>
+              <p className="text-xs text-muted-foreground">
+                {userData?.email || "User Email"}
+              </p>
             </div>
           </div>
         </div>

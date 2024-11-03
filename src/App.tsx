@@ -16,6 +16,12 @@ const PrivateRoute = ({ children }: { children: JSX.Element }) => {
   return isAuthenticated ? children : <Navigate to="/login" />;
 };
 
+const AdminRoute = ({ children }: { children: JSX.Element }) => {
+  const { userData, isAuthenticated } = useContext(UserContext);
+  // toaster
+  return isAuthenticated && userData?.role === "admin" ? children : <Navigate to="/chat" />;
+};
+
 
 // App Component
 const App = () => {
@@ -28,7 +34,7 @@ const App = () => {
       <Route path="/find-friend/:userId" element={<PrivateRoute><FindFriend /></PrivateRoute>} />
       <Route path="/find-group" element={<PrivateRoute><FindGroup /></PrivateRoute>} />
       <Route path="/create-group" element={<PrivateRoute><CreateGroup /></PrivateRoute>} />
-      <Route path="/dashboard" element={<PrivateRoute><Dashboard /></PrivateRoute>} />
+      <Route path="/dashboard" element={<AdminRoute><Dashboard /></AdminRoute>} />
       <Route path="/profile" element={<PrivateRoute><Profile /></PrivateRoute>} />
 
       {/* กรณีที่ไม่พบหน้า */}

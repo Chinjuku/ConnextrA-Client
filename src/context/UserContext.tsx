@@ -42,6 +42,7 @@ export const UserProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
                         Authorization: `Bearer ${localStorage.getItem('accessToken')}`,
                     },
                 });
+                console.log(response.data.user);
                 setUserData(response.data.user);
             } catch (error) {
                 console.error('Error fetching user data:', error);

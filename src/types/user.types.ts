@@ -11,4 +11,5 @@ export type User = {
     image_url: string;
     about: string | null; // New field for about
     created_at: string; // Can also be Date if you want to handle timestamps
+    role: string;
 }
