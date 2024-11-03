@@ -215,7 +215,7 @@ export default function Profile(){
                 },
               ].map(({ label, icon, name, value, isDateInput }) => (
                 <div key={name} className="space-y-2">
-                  <Label className="flex items-center gap-2 text-gray-600">
+                  <Label className="flex items-center gap-2 text-gray-600 ">
                     {icon}
                     {label}
                   </Label>
@@ -228,8 +228,8 @@ export default function Profile(){
                       onChange={handleInputChange}
                       className={`rounded-md ${
                         isEditing
-                          ? "bg-gray-50 border-gray-300"
-                          : "bg-gray-100 text-gray-600"
+                          ? "bg-gray-50 border-gray-300 p-1 text-center"
+                          : "bg-gray-100 text-gray-600 p-1 text-center"
                       } focus:outline-none`}
                     />
                   ) : (
