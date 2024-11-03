@@ -84,7 +84,7 @@ const Profile = () => {
         body: JSON.stringify(updatedUserData),
       });
 
-      const text = await response.text(); 
+      const text = await response.text();
 
       console.log("Response from server:", text);
 
@@ -93,7 +93,7 @@ const Profile = () => {
         throw new Error("Failed to update user data");
       }
 
-      toast.success(text); 
+      toast.success(text);
 
       setUserData({
         ...userData,
@@ -128,7 +128,7 @@ const Profile = () => {
       <div className="max-w-4xl mx-auto space-y-6 p-6">
         {/* Profile Header */}
         <Card className="shadow-lg rounded-lg overflow-hidden">
-          <CardContent className="pt-8 pb-6 px-6 bg-white rounded-t-lg">
+          <CardContent className="space-y-6 p-6 bg-white">
             <div className="flex flex-col md:flex-row gap-6 items-center md:items-start">
               <div className="relative">
                 <Avatar className="w-32 h-32 border-4 border-white shadow-lg rounded-full">
@@ -171,7 +171,8 @@ const Profile = () => {
           </CardHeader>
           <CardContent className="space-y-6 p-6 bg-white">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {[  // รายการข้อมูลที่แสดงในโปรไฟล์
+              {[
+                // รายการข้อมูลที่แสดงในโปรไฟล์
                 {
                   label: "First Name",
                   icon: <User />,
@@ -213,24 +214,40 @@ const Profile = () => {
                   icon: <MapPin />,
                   name: "dob",
                   value: formData.dob,
+                  isDateInput: true,
                 },
-              ].map(({ label, icon, name, value }) => (
+              ].map(({ label, icon, name, value, isDateInput }) => (
                 <div key={name} className="space-y-2">
                   <Label className="flex items-center gap-2 text-gray-600">
                     {icon}
                     {label}
                   </Label>
-                  <Input
-                    name={name}
-                    value={value}
-                    readOnly={!isEditing}
-                    onChange={handleInputChange}
-                    className={`rounded-md ${
-                      isEditing
-                        ? "bg-gray-50 border-gray-300"
-                        : "bg-gray-100 text-gray-600"
-                    } focus:outline-none`}
-                  />
+                  {isDateInput ? ( // ตรวจสอบว่าฟิลด์เป็นวันที่หรือไม่
+                    <input
+                      type="date"
+                      name={name}
+                      value={value}
+                      readOnly={!isEditing}
+                      onChange={handleInputChange}
+                      className={`rounded-md ${
+                        isEditing
+                          ? "bg-gray-50 border-gray-300"
+                          : "bg-gray-100 text-gray-600"
+                      } focus:outline-none`}
+                    />
+                  ) : (
+                    <Input
+                      name={name}
+                      value={value}
+                      readOnly={!isEditing}
+                      onChange={handleInputChange}
+                      className={`rounded-md ${
+                        isEditing
+                          ? "bg-gray-50 border-gray-300"
+                          : "bg-gray-100 text-gray-600"
+                      } focus:outline-none`}
+                    />
+                  )}
                 </div>
               ))}
             </div>
