@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Avatar } from "@/components/ui/avatar";
 import Navigation from '@/components/Nav';
 import { User } from "@/types/user.types"; // สมมติว่ามีการสร้าง type User
-import { getNotFriends } from "@/api/user"; // นำเข้า getNotFriends API
+import { getNotFriends, addFriend } from "@/api/user"; // นำเข้า getNotFriends และ addFriend API
 
 export default function FindFriend() {
   const { userId } = useParams(); // รับ userId จาก URL
@@ -28,6 +28,18 @@ export default function FindFriend() {
 
     fetchNotFriends();
   }, [userId]);
+
+  // ฟังก์ชันสำหรับเพิ่มเพื่อน
+  const handleAddFriend = async (friendId: number) => {
+    try {
+      const response = await addFriend(Number(userId), friendId); // ส่ง userId และ friendId
+      console.log(response.message); // แสดงข้อความที่ได้จากเซิร์ฟเวอร์
+      // หากต้องการ อัปเดต UI เช่น ลบเพื่อนออกจากรายการ notFriends
+      setNotFriends((prevNotFriends) => prevNotFriends.filter(user => user.id !== friendId));
+    } catch (error) {
+      console.error("Error adding friend:", error);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-gray-50 overflow-hidden">
@@ -64,28 +76,27 @@ export default function FindFriend() {
           {/* Friend Suggestions Grid */}
           <div className="flex-1">
             <h2 className="font-semibold text-indigo-700 mb-4">Friend Suggestions</h2>
-            {loading ? ( // ถ้ากำลังโหลดให้แสดงข้อความโหลด
+            {loading ? (
               <div className="flex items-center justify-center min-h-[200px]">
                 <span className="text-lg text-indigo-950">Loading friends...</span>
               </div>
             ) : (
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                {notFriends.map((user) => {
-                  console.log(user.image_url); // แสดงค่า image_url ใน console
-                  console.log(user.given_name); // แสดงค่า given_name ใน console
-                  return (
-                    <div key={user.id} className="bg-white p-4 rounded-lg shadow-lg transition transform hover:shadow-xl flex flex-col items-center justify-center">
-                      <Avatar className="w-20 h-20 mb-3 flex justify-center items-center">
-                        <img src={user.image_url} alt={`${user.given_name} ${user.family_name}`} />
-                      </Avatar>
-                      <h3 className="font-medium mb-2 text-center">{user.given_name} {user.family_name}</h3>
-                      <Button variant="outline" className="w-full hover:bg-indigo-700 hover:text-white transition duration-150">
-                        Add friend
-                      </Button>
-                    </div>
-                  );
-                })}
-
+                {notFriends.map((user) => (
+                  <div key={user.id} className="bg-white p-4 rounded-lg shadow-lg transition transform hover:shadow-xl flex flex-col items-center justify-center">
+                    <Avatar className="w-20 h-20 mb-3 flex justify-center items-center">
+                      <img src={user.image_url} alt={`${user.given_name} ${user.family_name}`} loading="lazy" />
+                    </Avatar>
+                    <h3 className="font-medium mb-2 text-center">{user.given_name} {user.family_name}</h3>
+                    <Button
+                      variant="outline"
+                      className="w-full hover:bg-indigo-700 hover:text-white transition duration-150"
+                      onClick={() => handleAddFriend(user.id)} // เรียกใช้ฟังก์ชันเมื่อคลิกปุ่ม
+                    >
+                      Add friend
+                    </Button>
+                  </div>
+                ))}
               </div>
             )}
           </div>
