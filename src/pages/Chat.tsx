@@ -41,8 +41,10 @@ export default function Chat() {
                         </div>
                     ) : (
                         <ChatWindow 
-                            friendId={friendId} 
-                            userId={userData?.id} 
+                            friendId={friendId}
+                            groupId={groupId}
+                            userId={userData?.id}
+                            friendAvatar={userData?.image_url}
                             userName={userName} // ส่ง given_name มาด้วย
                         />
                     )}

@@ -30,13 +30,14 @@ interface Message {
 const socket = io("http://localhost:3001");
 
 interface ChatWindowProps {
-  friendId: string;
-  userId: string;
-  friendAvatar: string;
+  friendId: string | null;
+  userId: string | undefined;
+  groupId: string | null;
+  friendAvatar: string | undefined;
   userName: string;
 }
 
-export default function ChatWindow({ friendId, userId, friendAvatar, userName }: ChatWindowProps) {
+export default function ChatWindow({ friendId, userId, groupId, friendAvatar, userName }: ChatWindowProps) {
   const [messages, setMessages] = useState<Message[]>([]);
   const [newMessage, setNewMessage] = useState("");
   const [emojiPickerOpen, setEmojiPickerOpen] = useState(false);
