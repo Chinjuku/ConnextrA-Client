@@ -8,6 +8,8 @@ interface UserContextProps {
     userData: User | null;
     setUserData: (value: User | null) => void;
     refreshToken: () => Promise<void>;
+    isLoading: boolean; // Add loading state
+    error: string | null; // Add error state
 }
 
 const UserContextDefaultValues: UserContextProps = {
@@ -16,6 +18,8 @@ const UserContextDefaultValues: UserContextProps = {
     userData: null,
     setUserData: () => {},
     refreshToken: async () => {},
+    isLoading: false, // Default loading state
+    error: null, // Default error state
 };
 
 export const UserContext = createContext<UserContextProps>(UserContextDefaultValues);
@@ -25,8 +29,12 @@ export const UserProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         localStorage.getItem("auth") === 'true'
     );
     const [userData, setUserData] = useState<User | null>(null);
+    const [isLoading, setIsLoading] = useState<boolean>(false); // Initialize loading state
+    const [error, setError] = useState<string | null>(null); // Initialize error state
 
     const fetchUserData = async () => {
+        setIsLoading(true); // Start loading
+        setError(null); // Clear previous errors
         if (isAuthenticated) {
             try {
                 const response = await axios.get(`${import.meta.env.VITE_BACKEND_URL}/user/protected-route`, {
@@ -37,12 +45,17 @@ export const UserProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
                 setUserData(response.data.user);
             } catch (error) {
                 console.error('Error fetching user data:', error);
+                setError('Failed to fetch user data.'); // Set error message
                 setAuthenticated(false);
                 localStorage.removeItem("auth");
                 localStorage.removeItem("accessToken");
                 localStorage.removeItem("refreshToken");
                 setUserData(null);
+            } finally {
+                setIsLoading(false); // End loading
             }
+        } else {
+            setIsLoading(false); // End loading if not authenticated
         }
     };
 
@@ -53,13 +66,13 @@ export const UserProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
                     refreshToken: localStorage.getItem("refreshToken") as string,
                 });
                 const { accessToken } = response.data;
-                console.log(accessToken)
+                console.log(accessToken);
                 localStorage.setItem("accessToken", accessToken);
-                // Set the default header for future requests
                 axios.defaults.headers.common['Authorization'] = `Bearer ${accessToken}`;
                 await fetchUserData();
             } catch (error) {
                 console.error('Error refreshing token:', error);
+                setError('Failed to refresh token.'); // Set error message
                 setAuthenticated(false);
                 localStorage.removeItem("auth");
                 localStorage.removeItem("accessToken");
@@ -75,9 +88,8 @@ export const UserProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             const interval = setInterval(refreshToken, 1000 * 60 * 5); // Every 5 minutes
             return () => clearInterval(interval);
         }
-    }, [isAuthenticated]); // Only run when authentication status changes
+    }, [isAuthenticated]);
 
-    // Update localStorage when authentication status changes
     useEffect(() => {
         localStorage.setItem("auth", String(isAuthenticated));
         if (!isAuthenticated) {
@@ -90,7 +102,15 @@ export const UserProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     }, [isAuthenticated]);
 
     return (
-        <UserContext.Provider value={{ isAuthenticated, setAuthenticated, userData, setUserData, refreshToken }}>
+        <UserContext.Provider value={{ 
+            isAuthenticated, 
+            setAuthenticated, 
+            userData, 
+            setUserData, 
+            refreshToken,
+            isLoading, // Provide loading state
+            error, // Provide error state
+        }}>
             {children}
         </UserContext.Provider>
     );
