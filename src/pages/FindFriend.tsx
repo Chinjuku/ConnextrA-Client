@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
-import { Search } from "lucide-react";
+import { Search, ThumbsUp } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Avatar } from "@/components/ui/avatar";
@@ -8,6 +8,7 @@ import Navigation from '@/components/Nav';
 import { User } from "@/types/user.types";
 import { getNotFriends, addFriend, getAllFriends } from "@/api/user";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+
 export default function FindFriend() {
   const { userId } = useParams();
   const [notFriends, setNotFriends] = useState<User[]>([]);
@@ -155,6 +156,13 @@ export default function FindFriend() {
             {loading ? (
               <div className="flex items-center justify-center min-h-[200px]">
                 <span className="text-lg text-indigo-950">Loading friends...</span>
+              </div>
+            ) : filteredNotFriends.length === 0 ? ( // เช็คว่ามีเพื่อนให้แอดหรือไม่
+              <div className="flex flex-col items-center justify-center min-h-[500px]">
+                <ThumbsUp className="h-16 w-16 text-gray-300 mb-2 opacity-75" />
+                <span className="text-lg text-gray-300  opacity-75">
+                  Congratulations! You are friends with everyone now!
+                </span>
               </div>
             ) : (
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
