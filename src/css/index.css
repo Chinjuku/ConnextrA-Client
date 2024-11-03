@@ -73,4 +73,19 @@
     /* Safari and Chrome */
   }
 
+  .loader {
+    border: 8px solid #f3f3f3; /* สีพื้นหลัง */
+    border-top: 8px solid #3498db; /* สีหมุน */
+    border-radius: 50%;
+    width: 60px; /* ขนาดวงกลม */
+    height: 60px; /* ขนาดวงกลม */
+    animation: spin 1s linear infinite; /* การเคลื่อนไหวหมุน */
+  }
+  
+  @keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+  }
+  
+
 }

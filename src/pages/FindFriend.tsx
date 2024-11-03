@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
-import { Search, ThumbsUp } from "lucide-react";
+import { Search, HeartCrack } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Avatar } from "@/components/ui/avatar";
@@ -8,6 +8,7 @@ import Navigation from '@/components/Nav';
 import { User } from "@/types/user.types";
 import { getNotFriends, addFriend, getAllFriends } from "@/api/user";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import Loading from "@/components/Loading";
 
 export default function FindFriend() {
   const { userId } = useParams();
@@ -37,29 +38,23 @@ export default function FindFriend() {
 
   // Fetch friends and not friends data
   useEffect(() => {
-    const fetchNotFriends = async () => {
+    const fetchData = async () => {
       setLoading(true);
       try {
-        const users = await getNotFriends(Number(userId));
+        const [users, friendsList] = await Promise.all([
+          getNotFriends(Number(userId)),
+          getAllFriends(Number(userId)),
+        ]);
         setNotFriends(users);
+        setFriends(friendsList);
       } catch (error) {
-        console.error("Error fetching not friends:", error);
+        console.error("Error fetching data:", error);
       } finally {
         setLoading(false);
       }
     };
 
-    const fetchAllFriends = async () => {
-      try {
-        const friendsList = await getAllFriends(Number(userId));
-        setFriends(friendsList);
-      } catch (error) {
-        console.error("Error fetching all friends:", error);
-      }
-    };
-
-    fetchNotFriends();
-    fetchAllFriends();
+    fetchData();
   }, [userId]);
 
   const handleAddFriend = async (friendId: number) => {
@@ -95,6 +90,11 @@ export default function FindFriend() {
       user.family_name?.toLowerCase().includes(debouncedSearchTermNotFriends.toLowerCase())) ?? false
   );
 
+  if (loading) {
+    return <Loading />;
+  }
+
+  
   return (
     <div className="min-h-screen bg-gray-50 overflow-hidden">
       <Navigation />
@@ -153,16 +153,10 @@ export default function FindFriend() {
 
           <div className="flex-1">
             <h2 className="font-semibold text-indigo-700 mb-4">Friend Suggestions</h2>
-            {loading ? (
-              <div className="flex items-center justify-center min-h-[200px]">
-                <span className="text-lg text-indigo-950">Loading friends...</span>
-              </div>
-            ) : filteredNotFriends.length === 0 ? ( // เช็คว่ามีเพื่อนให้แอดหรือไม่
+            {filteredNotFriends.length === 0 ? (
               <div className="flex flex-col items-center justify-center min-h-[500px]">
-                <ThumbsUp className="h-16 w-16 text-gray-300 mb-2 opacity-75" />
-                <span className="text-lg text-gray-300  opacity-75">
-                  Congratulations! You are friends with everyone now!
-                </span>
+                <HeartCrack className="h-16 w-16 text-gray-300 mb-2 opacity-75" />
+                <span className="text-lg text-gray-300 opacity-75">No friends found to search.</span>
               </div>
             ) : (
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">

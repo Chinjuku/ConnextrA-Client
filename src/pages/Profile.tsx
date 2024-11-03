@@ -10,8 +10,9 @@ import Navigation from "@/components/Nav";
 import { UserContext } from "@/context/UserContext";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import Loading from "@/components/Loading";
 
-const Profile = () => {
+export default function Profile(){
   const { userData, isLoading, setUserData } = useContext(UserContext);
   const [isEditing, setIsEditing] = useState(false);
   const [formData, setFormData] = useState({
@@ -115,11 +116,7 @@ const Profile = () => {
   };
 
   if (isLoading) {
-    return (
-      <div className="flex justify-center items-center h-screen text-gray-500">
-        Loading...
-      </div>
-    );
+    return <Loading />;
   }
 
   return (
@@ -277,4 +274,3 @@ const Profile = () => {
   );
 };
 
-export default Profile;
