@@ -86,7 +86,9 @@ const Navigation = () => {
               <AvatarFallback>{userData?.given_name?.[0] || "U"}</AvatarFallback>
             </Avatar>
             <div className="text-sm">
-              <p className="font-medium">{userData?.given_name || "User Name"}</p>
+            <p className="font-medium">
+  {userData?.given_name + ' ' + userData?.family_name || "User"}
+</p>
               <p className="text-xs text-muted-foreground">{userData?.email || "User Email"}</p>
             </div>
           </div>
