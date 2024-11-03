@@ -3,9 +3,12 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Image, Send, Smile, Paperclip, Menu, Flag } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import ChatInfo from "@/components/ChatInfo"; // Import ChatInfo
 import NotesComponent from "@/components/Notes"; // Import Notes component
+import { getFriend, getGroup } from "@/api/contact";
+import { User } from "@/types/user.types";
+import { Group } from "@/types/group.type";
 
 interface Message {
   id: number;
@@ -18,7 +21,36 @@ interface Message {
   timestamp: string;
 }
 
-export default function ChatWindow() {
+type ChatWindowProps = {
+  friendId: string | null;
+  groupId: string | null;
+  userId: number | undefined;
+};
+
+const ChatWindow: React.FC<ChatWindowProps> = ({
+  friendId,
+  groupId,
+  userId,
+}) => {
+  const [friend, setFriend] = useState<User | null>(null);
+  const [group, setGroup] = useState<Group | null>(null);
+  useEffect(() => {
+    if (friendId) {
+      const fetchFriend = async () => {
+        const response = await getFriend(Number(friendId));
+        setFriend(response)
+      }
+      fetchFriend();
+    } else if (groupId) {
+      const fetchFriend = async () => {
+        const response = await getGroup(Number(groupId));
+        setGroup(response)
+      }
+      fetchFriend();
+    }
+  }, [friendId, groupId]);
+  console.log(friend, group)
+
   const [messages, setMessages] = useState<Message[]>([
     {
       id: 1,
@@ -41,9 +73,10 @@ export default function ChatWindow() {
       timestamp: "09:42",
     },
   ]);
-
   const [newMessage, setNewMessage] = useState("");
-  const [activeComponent, setActiveComponent] = useState<"chatInfo" | "notes">("chatInfo"); // State to switch between components
+  const [activeComponent, setActiveComponent] = useState<"chatInfo" | "notes">(
+    "chatInfo"
+  ); // State to switch between components
 
   const handleSendMessage = () => {
     if (!newMessage.trim()) return;
@@ -78,7 +111,11 @@ export default function ChatWindow() {
               <img src="https://github.com/shadcn.png" alt="Contact" />
             </Avatar>
             <div>
-              <h3 className="font-medium">John Doe</h3>
+              <h3 className="font-medium">{
+                friend ? friend?.given_name + " " + friend?.given_name :
+                group ? group?.name : ""
+
+                }</h3>
               <span className="text-xs text-green-500">● Online</span>
             </div>
           </div>
@@ -98,7 +135,9 @@ export default function ChatWindow() {
             {messages.map((message) => (
               <div
                 key={message.id}
-                className={`flex gap-3 ${message.sender.isMe ? "flex-row-reverse" : "flex-row"}`}
+                className={`flex gap-3 ${
+                  message.sender.isMe ? "flex-row-reverse" : "flex-row"
+                }`}
               >
                 <Avatar className="w-8 h-8">
                   <img src={message.sender.avatar} alt={message.sender.name} />
@@ -110,7 +149,11 @@ export default function ChatWindow() {
                     </p>
                   )}
                   <div
-                    className={`rounded-2xl px-4 py-2 ${message.sender.isMe ? "bg-blue-500 text-white" : "bg-gray-200 text-gray-800"}`}
+                    className={`rounded-2xl px-4 py-2 ${
+                      message.sender.isMe
+                        ? "bg-blue-500 text-white"
+                        : "bg-gray-200 text-gray-800"
+                    }`}
                   >
                     <p className="text-sm">{message.content}</p>
                   </div>
@@ -146,7 +189,10 @@ export default function ChatWindow() {
             <Button variant="ghost" size="icon">
               <Smile className="h-5 w-5 text-gray-500" />
             </Button>
-            <Button onClick={handleSendMessage} className="bg-blue-500 text-white">
+            <Button
+              onClick={handleSendMessage}
+              className="bg-blue-500 text-white"
+            >
               Send
             </Button>
           </div>
@@ -157,10 +203,10 @@ export default function ChatWindow() {
       <div className="w-96 flex-shrink-0 border-l pl-4">
         {activeComponent === "chatInfo" ? (
           <ChatInfo
-            name="John Doe"
-            email="pleo2003@gmail.com"
-            location="Bangkok, Thailand"
-            birthday="9 Aug, 2003"
+            name={friend ? `${friend?.given_name} ${friend?.given_name}` : `${group?.name}`}
+            email={friend ? `${friend?.email}` : ""}
+            location={friend ? `${friend?.province || "" } ${friend?.country || ""}` : ""}
+            birthday={friend ? `${friend?.date_of_birth}` : ""}
             onNotesClick={() => setActiveComponent("notes")} // Change to notes component
           />
         ) : (
@@ -169,4 +215,6 @@ export default function ChatWindow() {
       </div>
     </div>
   );
-}
+};
+
+export default ChatWindow;

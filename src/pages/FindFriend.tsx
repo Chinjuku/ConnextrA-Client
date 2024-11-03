@@ -14,7 +14,7 @@ export default function FindFriend() {
         <div className="flex flex-col md:flex-row gap-8">
           {/* Left Sidebar */}
           <div className="w-80 border-r pt-4 pr-4">
-            <h2 className="font-semibold mb-4 text-indigo-700 text-lg font-semibold">Find Friend</h2>
+            <h2 className="mb-4 text-indigo-700 text-lg font-semibold">Find Friend</h2>
             <div className="relative mb-4">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
               <Input

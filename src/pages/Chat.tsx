@@ -1,17 +1,25 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import Navigation from '@/components/Nav';
 import ChatWindow from "@/components/ChatWindow";
 import Sidebar from "@/components/SidebarChat";
 import { MessageSquare } from "lucide-react";
+import { useContext } from "react";
+import { UserContext } from "@/context/UserContext";
 
 export default function Chat() {
+    const { userData } = useContext(UserContext)
     const [isChatOpen, setIsChatOpen] = useState(false); // Toggle chat window
-    const [selectedFriend, setSelectedFriend] = useState<string | null>(null); // Track selected friend
-
-    const handleFriendSelect = (friendName: string) => {
-        setSelectedFriend(friendName); // Update selected friend
-        setIsChatOpen(true); // Open chat window
-    };
+    // const [selectedFriend, setSelectedFriend] = useState<string | null>(null); // Track selected friend
+    const urlParams = new URLSearchParams(window.location.search);
+    const friendId = urlParams.get('friendId');
+    const groupId = urlParams.get('groupId');
+    const blockId = urlParams.get('blockId');
+    console.log(friendId, groupId, blockId);
+    useEffect(() => {
+      if (friendId || groupId || blockId) {
+        setIsChatOpen(true)
+      }
+    }, [friendId, groupId, blockId])
 
     return (
         <div className="h-screen bg-gray-50 flex flex-col">
@@ -20,7 +28,12 @@ export default function Chat() {
 
             <div className="flex flex-grow container mx-auto px-4">
                 {/* Sidebar */}
-                <Sidebar onFriendSelect={handleFriendSelect} />
+                <Sidebar 
+                  friendId={friendId} 
+                  groupId={groupId} 
+                  blockId={blockId}
+                  userId={userData?.id} 
+                />
 
                 {/* Main Content */}
                 <main className="flex-1 flex">
@@ -35,7 +48,11 @@ export default function Chat() {
                             </div>
                         </div>
                     ) : (
-                        <ChatWindow friend={selectedFriend} /> // Pass the selected friend to ChatWindow
+                        <ChatWindow 
+                          friendId={friendId} 
+                          groupId={groupId} 
+                          userId={userData?.id} 
+                        /> // Pass the selected friend to ChatWindow
                     )}
                 </main>
             </div>
