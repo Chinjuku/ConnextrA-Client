@@ -4,11 +4,9 @@ import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Image, Send, Smile, Paperclip, Menu, Flag } from "lucide-react";
 import { useEffect, useState } from "react";
-import ChatInfo from "@/components/ChatInfo"; // Import ChatInfo
-import NotesComponent from "@/components/Notes"; // Import Notes component
-import { getFriend, getGroup } from "@/api/contact";
-import { User } from "@/types/user.types";
-import { Group } from "@/types/group.type";
+import ChatInfo from "@/components/ChatInfo";
+import NotesComponent from "@/components/Notes";
+import { io } from "socket.io-client";
 
 interface Message {
   id: number;
@@ -21,32 +19,14 @@ interface Message {
   timestamp: string;
 }
 
-interface UserData {
-  id: number;
-  name: string;
-  avatar: string;
-  email: string;
-  location: string;
-  birthday: string;
-}
-
-// สมมติว่า userData มาจาก props
-interface ChatWindowProps {
-  userData: UserData;
-}
-
 const socket = io("http://localhost:3001");
 
-export default function ChatWindow({ userData }: ChatWindowProps) {
+export default function ChatWindow() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [newMessage, setNewMessage] = useState("");
   const [activeComponent, setActiveComponent] = useState<"chatInfo" | "notes">("chatInfo");
 
   useEffect(() => {
-    socket.on("connect", () => {
-      console.log("Connected to Socket.IO server");
-    });
-
     socket.on("receive_message", (message: Message) => {
       setMessages((prevMessages) => [...prevMessages, message]);
     });
@@ -63,8 +43,8 @@ export default function ChatWindow({ userData }: ChatWindowProps) {
       id: messages.length + 1,
       content: newMessage,
       sender: {
-        name: userData.name, // ใช้ชื่อผู้ใช้จาก userData
-        avatar: userData.avatar, // ใช้ URL อวตาร์จาก userData
+        name: "You",
+        avatar: "https://github.com/shadcn.png",
         isMe: true,
       },
       timestamp: new Date().toLocaleTimeString("en-US", {
@@ -84,14 +64,10 @@ export default function ChatWindow({ userData }: ChatWindowProps) {
         <div className="border-b p-4 flex items-center justify-between bg-white">
           <div className="flex items-center gap-3">
             <Avatar>
-              <img src={userData.avatar} alt="Contact" /> {/* แสดงอวตาร์ของผู้ใช้ */}
+              <img src="https://github.com/shadcn.png" alt="Contact" />
             </Avatar>
             <div>
-              <h3 className="font-medium">{
-                friend ? friend?.given_name + " " + friend?.given_name :
-                group ? group?.name : ""
-
-                }</h3>
+              <h3 className="font-medium">John Doe</h3>
               <span className="text-xs text-green-500">● Online</span>
             </div>
           </div>
@@ -110,9 +86,7 @@ export default function ChatWindow({ userData }: ChatWindowProps) {
             {messages.map((message) => (
               <div
                 key={message.id}
-                className={`flex gap-3 ${
-                  message.sender.isMe ? "flex-row-reverse" : "flex-row"
-                }`}
+                className={`flex gap-3 ${message.sender.isMe ? "flex-row-reverse" : "flex-row"}`}
               >
                 <Avatar className="w-8 h-8">
                   <img src={message.sender.avatar} alt={message.sender.name} />
@@ -124,11 +98,7 @@ export default function ChatWindow({ userData }: ChatWindowProps) {
                     </p>
                   )}
                   <div
-                    className={`rounded-2xl px-4 py-2 ${
-                      message.sender.isMe
-                        ? "bg-blue-500 text-white"
-                        : "bg-gray-200 text-gray-800"
-                    }`}
+                    className={`rounded-2xl px-4 py-2 ${message.sender.isMe ? "bg-blue-500 text-white" : "bg-gray-200 text-gray-800"}`}
                   >
                     <p className="text-sm">{message.content}</p>
                   </div>
@@ -163,10 +133,7 @@ export default function ChatWindow({ userData }: ChatWindowProps) {
             <Button variant="ghost" size="icon">
               <Smile className="h-5 w-5 text-gray-500" />
             </Button>
-            <Button
-              onClick={handleSendMessage}
-              className="bg-blue-500 text-white"
-            >
+            <Button onClick={handleSendMessage} className="bg-blue-500 text-white">
               Send
             </Button>
           </div>
@@ -176,11 +143,11 @@ export default function ChatWindow({ userData }: ChatWindowProps) {
       <div className="w-96 flex-shrink-0 border-l pl-4">
         {activeComponent === "chatInfo" ? (
           <ChatInfo
-            name={friend ? `${friend?.given_name} ${friend?.given_name}` : `${group?.name}`}
-            email={friend ? `${friend?.email}` : ""}
-            location={friend ? `${friend?.province || "" } ${friend?.country || ""}` : ""}
-            birthday={friend ? `${friend?.date_of_birth}` : ""}
-            onNotesClick={() => setActiveComponent("notes")} // Change to notes component
+            name="John Doe"
+            email="pleo2003@gmail.com"
+            location="Bangkok, Thailand"
+            birthday="9 Aug, 2003"
+            onNotesClick={() => setActiveComponent("notes")}
           />
         ) : (
           <NotesComponent onBackClick={() => setActiveComponent("chatInfo")} />
@@ -188,6 +155,4 @@ export default function ChatWindow({ userData }: ChatWindowProps) {
       </div>
     </div>
   );
-};
-
-export default ChatWindow;
+}
