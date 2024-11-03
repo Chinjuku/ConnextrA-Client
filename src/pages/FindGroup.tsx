@@ -4,8 +4,9 @@ import { Button } from "@/components/ui/button";
 import { Avatar } from "@/components/ui/avatar";
 import Navigation from '@/components/Nav';
 import { Link } from "react-router-dom";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useContext } from "react";
 import axios from 'axios';
+import { UserContext } from "@/context/UserContext"; // นำเข้า UserContext
 
 interface Group {
     id: number;
@@ -13,22 +14,25 @@ interface Group {
 }
 
 export default function FindGroup() {
+    const { userData, isLoading } = useContext(UserContext); // ใช้ useContext เพื่อดึงข้อมูล user
     const [searchQuery, setSearchQuery] = useState(""); 
     const [suggestedGroups, setSuggestedGroups] = useState<Group[]>([]); 
     const [recentGroups, setRecentGroups] = useState<Group[]>([]); 
-    const userId = 1; 
+    const userId = userData?.id; // ใช้ userId จากข้อมูลของผู้ใช้ที่ล็อกอิน
 
     useEffect(() => {
-        fetchSuggestedGroups(); 
-        loadRecentGroups(); 
-    }, []);
+        if (userId) {
+            fetchSuggestedGroups();
+            loadRecentGroups();
+        }
+    }, [userId]);
 
     const fetchSuggestedGroups = async () => {
         try {
             const response = await axios.get(`http://localhost:3000/group/find/${userId}`, {
                 params: { q: searchQuery }
             });
-            setSuggestedGroups(response.data); 
+            setSuggestedGroups(response.data);
         } catch (error) {
             console.error("Error fetching suggested groups:", error);
         }
@@ -42,19 +46,28 @@ export default function FindGroup() {
     };
 
     const addToRecentGroups = (group: Group) => {
-        const updatedRecentGroups = [group, ...recentGroups.filter(g => g.id !== group.id)].slice(0, 5); // เก็บแค่ 5 กลุ่มล่าสุด
+        const updatedRecentGroups = [group, ...recentGroups.filter(g => g.id !== group.id)].slice(0, 5);
         setRecentGroups(updatedRecentGroups);
         localStorage.setItem('recentGroups', JSON.stringify(updatedRecentGroups));
     };
 
     const handleGroupClick = (group: Group) => {
         addToRecentGroups(group);
+    };
 
+    const handleJoinGroup = async (group: Group) => {
+        try {
+            const response = await axios.post(`http://localhost:3000/group/join/${group.id}/${userId}`);
+            alert(response.data.message);
+        } catch (error) {
+            console.error("Error joining group:", error);
+            alert("Failed to join group.");
+        }
     };
 
     const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         setSearchQuery(e.target.value);
-        fetchSuggestedGroups(); 
+        fetchSuggestedGroups();
     };
 
     return (
@@ -80,7 +93,7 @@ export default function FindGroup() {
                             <Input
                                 placeholder="Search"
                                 className="pl-10 border-gray-300 focus:border-black-500 focus:ring-black-500 transition duration-150 ease-in-out"
-                                onChange={handleSearchChange} 
+                                onChange={handleSearchChange}
                             />
                         </div>
 
@@ -111,12 +124,12 @@ export default function FindGroup() {
                                 <span>No suggested groups found.</span>
                             ) : (
                                 suggestedGroups.map((group) => (
-                                    <div key={group.id} className="bg-white p-4 rounded-lg shadow-sm flex flex-col items-center" onClick={() => handleGroupClick(group)}>
+                                    <div key={group.id} className="bg-white p-4 rounded-lg shadow-sm flex flex-col items-center">
                                         <Avatar className="w-20 h-20 mb-3">
                                             <img src="https://github.com/shadcn.png" alt={group.name} />
                                         </Avatar>
                                         <h3 className="font-medium mb-2">{group.name}</h3>
-                                        <Button variant="outline" className="w-full">
+                                        <Button variant="outline" className="w-full" onClick={() => handleJoinGroup(group)}>
                                             Join Group
                                         </Button>
                                     </div>
