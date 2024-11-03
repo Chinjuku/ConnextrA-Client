@@ -22,7 +22,7 @@ const Profile = () => {
     province: "",
     country: "",
     dob: "",
-    about: "",
+    about_me: "", // ใช้ชื่อฟิลด์ที่ถูกต้อง
   });
 
   const capitalize = (str: string | null) => {
@@ -40,9 +40,7 @@ const Profile = () => {
         province: userData.province || "-",
         country: userData.country || "-",
         dob: userData.date_of_birth || "-",
-        about:
-          userData.about ||
-          "Passionate web developer with 5 years of experience in creating user-friendly applications.",
+        about_me: userData.about || "-", // ใช้ชื่อฟิลด์ที่ถูกต้อง
       });
     }
   }, [userData]);
@@ -75,7 +73,7 @@ const Profile = () => {
         province: formData.province,
         country: formData.country,
         date_of_birth: formData.dob,
-        about_me: formData.about,
+        about_me: formData.about_me, // ใช้ชื่อฟิลด์ที่ถูกต้อง
       };
 
       const response = await fetch(apiUrl, {
@@ -106,7 +104,7 @@ const Profile = () => {
         province: formData.province,
         country: formData.country,
         date_of_birth: formData.dob,
-        about: formData.about,
+        about: formData.about_me, // ใช้ชื่อฟิลด์ที่ถูกต้อง
       });
 
       toggleEditMode();
@@ -173,7 +171,7 @@ const Profile = () => {
           </CardHeader>
           <CardContent className="space-y-6 p-6 bg-white">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {[
+              {[  // รายการข้อมูลที่แสดงในโปรไฟล์
                 {
                   label: "First Name",
                   icon: <User />,
@@ -242,8 +240,8 @@ const Profile = () => {
             <div className="space-y-2">
               <Label className="text-gray-600">About Me</Label>
               <Input
-                name="about"
-                value={formData.about}
+                name="about_me" // เปลี่ยนชื่อฟิลด์ที่นี่
+                value={formData.about_me} // ใช้ about_me
                 readOnly={!isEditing}
                 onChange={handleInputChange}
                 className={`h-24 rounded-md ${
