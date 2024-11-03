@@ -228,7 +228,7 @@ export default function Profile(){
                       onChange={handleInputChange}
                       className={`rounded-md ${
                         isEditing
-                          ? "bg-gray-50 border-gray-300 p-1"
+                          ? "bg-gray-50 border-gray-300 p-1 text-center"
                           : "bg-gray-100 text-gray-600 p-1 text-center"
                       } focus:outline-none`}
                     />
