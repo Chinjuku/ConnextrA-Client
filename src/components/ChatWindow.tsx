@@ -8,6 +8,7 @@ import ChatInfo from "@/components/ChatInfo";
 import NotesComponent from "@/components/Notes";
 import { io } from "socket.io-client";
 import { v4 as uuidv4 } from 'uuid';
+import EmojiPicker, { EmojiClickData } from 'emoji-picker-react';
 
 interface Message {
   id: string;
@@ -38,13 +39,12 @@ interface ChatWindowProps {
 export default function ChatWindow({ friendId, userId, friendAvatar, userName }: ChatWindowProps) {
   const [messages, setMessages] = useState<Message[]>([]);
   const [newMessage, setNewMessage] = useState("");
+  const [emojiPickerOpen, setEmojiPickerOpen] = useState(false);
   const [activeComponent, setActiveComponent] = useState<"chatInfo" | "notes">("chatInfo");
-  
-  // เพิ่ม ref สำหรับ scroll container
+
   const scrollRef = useRef<HTMLDivElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  // เพิ่ม function สำหรับเลื่อนลงด้านล่าง
   const scrollToBottom = () => {
     if (messagesEndRef.current) {
       messagesEndRef.current.scrollIntoView({ behavior: "smooth" });
@@ -64,10 +64,9 @@ export default function ChatWindow({ friendId, userId, friendAvatar, userName }:
     };
   }, [friendId, userId]);
 
-  // เพิ่ม useEffect สำหรับ auto scroll
   useEffect(() => {
     scrollToBottom();
-  }, [messages]); // เมื่อ messages มีการเปลี่ยนแปลง จะ scroll ลงด้านล่าง
+  }, [messages]);
 
   const handleSendMessage = () => {
     if (!newMessage.trim()) return;
@@ -97,9 +96,14 @@ export default function ChatWindow({ friendId, userId, friendAvatar, userName }:
     setNewMessage("");
   };
 
+  const handleEmojiSelect = (emojiData: EmojiClickData) => {
+    setNewMessage((prev) => prev + emojiData.emoji);
+    setEmojiPickerOpen(false); // ปิด emoji picker หลังจากเลือก
+  };
+
   return (
     <div className="flex w-full">
-      <div className="flex flex-col bg-gray-100 rounded-lg flex-1 mr-4 h-[calc(100vh-70px)]" >
+      <div className="flex flex-col bg-gray-100 rounded-lg flex-1 mr-4 h-[calc(100vh-70px)]">
         <div className="border-b p-4 flex items-center justify-between bg-white">
           <div className="flex items-center gap-3">
             <Avatar>
@@ -120,7 +124,7 @@ export default function ChatWindow({ friendId, userId, friendAvatar, userName }:
           </div>
         </div>
 
-        <ScrollArea className="flex-1 p-4 bg-gray-50" ref={scrollRef} >
+        <ScrollArea className="flex-1 p-4 bg-gray-50" ref={scrollRef}>
           <div className="space-y-4">
             {messages.map((message) => (
               <div
@@ -132,31 +136,31 @@ export default function ChatWindow({ friendId, userId, friendAvatar, userName }:
                 </Avatar>
                 <div className={`group relative max-w-[75%]`}>
                   {message.sender.id === userId ? (
-                    <p className="text-xs text-muted-foreground mb-1 text-right">
-                      You
-                    </p>
+                    <p className="text-xs text-muted-foreground mb-1 text-right">You</p>
                   ) : (
-                    <p className="text-xs text-muted-foreground mb-1">
-                      {message.sender.name}
-                    </p>
+                    <p className="text-xs text-muted-foreground mb-1">{message.sender.name}</p>
                   )}
                   <div
-                    className={`rounded-2xl px-4 py-2 ${message.sender.id === userId ? "bg-blue-500 text-white" : "bg-gray-200 text-gray-800"}`}
+                    className={`rounded-2xl px-4 py-2 ${
+                      message.sender.id === userId ? "bg-blue-500 text-white" : "bg-gray-200 text-gray-800"
+                    }`}
                   >
                     <p className="text-sm">{message.content}</p>
                   </div>
-                  <span className="text-[10px] text-gray-500 px-2">
-                    {message.timestamp}
-                  </span>
+                  <span className="text-[10px] text-gray-500 px-2">{message.timestamp}</span>
                 </div>
               </div>
             ))}
-            {/* Add an empty div at the bottom for scrolling reference */}
             <div ref={messagesEndRef} />
           </div>
         </ScrollArea>
 
-        <div className="border-t p-4 bg-white">
+        <div className="border-t p-4 bg-white relative">
+          {emojiPickerOpen && (
+            <div className="absolute bottom-16 right-0 ">
+              <EmojiPicker onEmojiClick={handleEmojiSelect} />
+            </div>
+          )}
           <div className="flex items-center gap-2">
             <Button variant="ghost" size="icon">
               <Paperclip className="h-5 w-5 text-gray-500" />
@@ -175,7 +179,7 @@ export default function ChatWindow({ friendId, userId, friendAvatar, userName }:
               placeholder="Type a message..."
               className="flex-1 bg-gray-100 border-none focus:ring-0"
             />
-            <Button variant="ghost" size="icon">
+            <Button variant="ghost" size="icon" onClick={() => setEmojiPickerOpen(!emojiPickerOpen)}>
               <Smile className="h-5 w-5 text-gray-500" />
             </Button>
             <Button onClick={handleSendMessage} className="bg-blue-500 text-white">
