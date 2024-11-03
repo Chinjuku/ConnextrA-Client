@@ -4,8 +4,8 @@ import { Button } from "@/components/ui/button";
 import { Avatar } from "@/components/ui/avatar";
 import Navigation from "@/components/Nav";
 import { Link } from "react-router-dom";
-import { useEffect, useState, useContext } from "react";
 import axios from "axios";
+import { useEffect, useState, useContext } from "react";
 import { UserContext } from "@/context/UserContext";
 
 interface Group {
