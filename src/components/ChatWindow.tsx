@@ -3,64 +3,77 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Image, Send, Smile, Paperclip, Menu, Flag } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import ChatInfo from "@/components/ChatInfo";
 import NotesComponent from "@/components/Notes";
 import { io } from "socket.io-client";
-import { v4 as uuidv4 } from 'uuid'; // Import uuid for unique IDs
+import { v4 as uuidv4 } from 'uuid';
 
 interface Message {
-  id: string; // Changed to string for UUID
+  id: string;
   content: string;
   sender: {
-    id: string; // ID ของผู้ส่ง
+    id: string;
     name: string;
     avatar: string;
     isMe: boolean;
   };
   recipient: {
-    id: string; // ID ของผู้รับ
-    name: string; // ชื่อของผู้รับ
-    avatar: string; // รูปโปรไฟล์ของผู้รับ
+    id: string;
+    name: string;
+    avatar: string;
   };
   timestamp: string;
 }
 
-// Use an environment variable for the socket URL
 const socket = io("http://localhost:3001");
 
 interface ChatWindowProps {
-  friendId: string; // ID ของเพื่อน
-  userId: string; // ID ของผู้ใช้
-  friendAvatar: string; // URL ของรูปโปรไฟล์เพื่อน
-  userName: string; // ชื่อผู้ใช้
+  friendId: string;
+  userId: string;
+  friendAvatar: string;
+  userName: string;
 }
 
-export default function ChatWindow({ friendId, userId, friendAvatar, userName  }: ChatWindowProps) {
+export default function ChatWindow({ friendId, userId, friendAvatar, userName }: ChatWindowProps) {
   const [messages, setMessages] = useState<Message[]>([]);
   const [newMessage, setNewMessage] = useState("");
   const [activeComponent, setActiveComponent] = useState<"chatInfo" | "notes">("chatInfo");
+  
+  // เพิ่ม ref สำหรับ scroll container
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  // เพิ่ม function สำหรับเลื่อนลงด้านล่าง
+  const scrollToBottom = () => {
+    if (messagesEndRef.current) {
+      messagesEndRef.current.scrollIntoView({ behavior: "smooth" });
+    }
+  };
 
   useEffect(() => {
-    // ฟังการรับข้อความจากเซิร์ฟเวอร์
     socket.on("receive_message", (data: { message: Message; friendId: string }) => {
       const { message } = data;
       setMessages((prevMessages) => [...prevMessages, message]);
     });
 
-    // ฟังเมื่อมีการเชื่อมต่อใหม่
-    socket.emit("join_chat", { userId, friendId }); // ส่งข้อมูลเพื่อเข้าร่วมการแชท
+    socket.emit("join_chat", { userId, friendId });
 
     return () => {
       socket.off("receive_message");
     };
   }, [friendId, userId]);
 
+  // เพิ่ม useEffect สำหรับ auto scroll
+  useEffect(() => {
+    scrollToBottom();
+  }, [messages]); // เมื่อ messages มีการเปลี่ยนแปลง จะ scroll ลงด้านล่าง
+
   const handleSendMessage = () => {
     if (!newMessage.trim()) return;
 
     const message: Message = {
-      id: uuidv4(), // Use UUID for unique message IDs
+      id: uuidv4(),
       content: newMessage,
       sender: {
         id: userId,
@@ -70,8 +83,8 @@ export default function ChatWindow({ friendId, userId, friendAvatar, userName  }
       },
       recipient: {
         id: friendId,
-        name: "", // Removed friend name
-        avatar: friendAvatar, // Use the friend's avatar from props
+        name: "",
+        avatar: friendAvatar,
       },
       timestamp: new Date().toLocaleTimeString("en-US", {
         hour: "2-digit",
@@ -80,22 +93,20 @@ export default function ChatWindow({ friendId, userId, friendAvatar, userName  }
       }),
     };
 
-    // ส่งข้อความไปยังเซิร์ฟเวอร์
     socket.emit("send_message", { message, friendId });
     setNewMessage("");
   };
 
   return (
     <div className="flex w-full">
-      <div className="flex flex-col bg-gray-100 rounded-lg flex-1 mr-4">
-        {/* Header */}
+      <div className="flex flex-col bg-gray-100 rounded-lg flex-1 mr-4 h-[calc(100vh-70px)]" >
         <div className="border-b p-4 flex items-center justify-between bg-white">
           <div className="flex items-center gap-3">
             <Avatar>
-              <img src={friendAvatar} alt="Friend" /> {/* Dynamic friend avatar */}
+              <img src={friendAvatar} alt="Friend" />
             </Avatar>
             <div>
-              <h3 className="font-medium">Friend</h3> {/* Static name or dynamic if needed */}
+              <h3 className="font-medium">Friend</h3>
               <span className="text-xs text-green-500">● Online</span>
             </div>
           </div>
@@ -109,8 +120,7 @@ export default function ChatWindow({ friendId, userId, friendAvatar, userName  }
           </div>
         </div>
 
-        {/* Messages */}
-        <ScrollArea className="flex-1 p-4 bg-gray-50">
+        <ScrollArea className="flex-1 p-4 bg-gray-50" ref={scrollRef} >
           <div className="space-y-4">
             {messages.map((message) => (
               <div
@@ -141,10 +151,11 @@ export default function ChatWindow({ friendId, userId, friendAvatar, userName  }
                 </div>
               </div>
             ))}
+            {/* Add an empty div at the bottom for scrolling reference */}
+            <div ref={messagesEndRef} />
           </div>
         </ScrollArea>
 
-        {/* Message Input */}
         <div className="border-t p-4 bg-white">
           <div className="flex items-center gap-2">
             <Button variant="ghost" size="icon">
@@ -174,11 +185,10 @@ export default function ChatWindow({ friendId, userId, friendAvatar, userName  }
         </div>
       </div>
 
-      {/* Chat Info or Notes */}
       <div className="w-96 flex-shrink-0 border-l pl-4">
         {activeComponent === "chatInfo" ? (
           <ChatInfo
-            name="Friend" // Static name or use an appropriate dynamic name if needed
+            name="Friend"
             email="pleo2003@gmail.com"
             location="Bangkok, Thailand"
             birthday="9 Aug, 2003"

@@ -12,6 +12,7 @@ export default function Chat() {
     const friendId = urlParams.get('friendId');
     const groupId = urlParams.get('groupId');
     const blockId = urlParams.get('blockId');
+    const userName = `${userData?.given_name}`;
 
     useEffect(() => {
         setIsChatOpen(!!(friendId || groupId || blockId));
@@ -42,7 +43,7 @@ export default function Chat() {
                         <ChatWindow 
                             friendId={friendId} 
                             userId={userData?.id} 
-                            userName={userData?.given_name} // ส่ง given_name มาด้วย
+                            userName={userName} // ส่ง given_name มาด้วย
                         />
                     )}
                 </main>
