@@ -13,22 +13,22 @@ interface Group {
 }
 
 export default function FindGroup() {
-    const [searchQuery, setSearchQuery] = useState(""); // State สำหรับเก็บคำค้นหา
-    const [suggestedGroups, setSuggestedGroups] = useState<Group[]>([]); // State สำหรับกลุ่มแนะนำ
-    const [recentGroups, setRecentGroups] = useState<Group[]>([]); // State สำหรับเก็บกลุ่มที่ดูล่าสุด
-    const userId = 1; // หรือเปลี่ยนเป็น userId ที่คุณต้องการ
+    const [searchQuery, setSearchQuery] = useState(""); 
+    const [suggestedGroups, setSuggestedGroups] = useState<Group[]>([]); 
+    const [recentGroups, setRecentGroups] = useState<Group[]>([]); 
+    const userId = 1; 
 
     useEffect(() => {
-        fetchSuggestedGroups(); // เรียก fetchSuggestedGroups เมื่อ component โหลดครั้งแรก
-        loadRecentGroups(); // โหลด recent groups จาก localStorage เมื่อ component โหลด
+        fetchSuggestedGroups(); 
+        loadRecentGroups(); 
     }, []);
 
     const fetchSuggestedGroups = async () => {
         try {
             const response = await axios.get(`http://localhost:3000/group/find/${userId}`, {
-                params: { q: searchQuery } // ส่ง searchQuery เป็น params เพื่อใช้ค้นหา
+                params: { q: searchQuery }
             });
-            setSuggestedGroups(response.data); // อัพเดต state ของ suggestedGroups
+            setSuggestedGroups(response.data); 
         } catch (error) {
             console.error("Error fetching suggested groups:", error);
         }
@@ -49,12 +49,12 @@ export default function FindGroup() {
 
     const handleGroupClick = (group: Group) => {
         addToRecentGroups(group);
-        // ที่นี่คุณสามารถใส่โค้ดการ navigate ไปที่หน้ารายละเอียดของกลุ่มถ้าต้องการ
+
     };
 
     const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         setSearchQuery(e.target.value);
-        fetchSuggestedGroups(); // อัพเดต suggestedGroups ตามคำค้นหาใหม่
+        fetchSuggestedGroups(); 
     };
 
     return (
@@ -80,7 +80,7 @@ export default function FindGroup() {
                             <Input
                                 placeholder="Search"
                                 className="pl-10 border-gray-300 focus:border-black-500 focus:ring-black-500 transition duration-150 ease-in-out"
-                                onChange={handleSearchChange} // เรียกใช้ handleSearchChange เมื่อ input เปลี่ยน
+                                onChange={handleSearchChange} 
                             />
                         </div>
 
