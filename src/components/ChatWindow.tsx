@@ -7,45 +7,71 @@ import { useEffect, useState } from "react";
 import ChatInfo from "@/components/ChatInfo";
 import NotesComponent from "@/components/Notes";
 import { io } from "socket.io-client";
+import { v4 as uuidv4 } from 'uuid'; // Import uuid for unique IDs
 
 interface Message {
-  id: number;
+  id: string; // Changed to string for UUID
   content: string;
   sender: {
+    id: string; // ID ของผู้ส่ง
     name: string;
     avatar: string;
     isMe: boolean;
   };
+  recipient: {
+    id: string; // ID ของผู้รับ
+    name: string; // ชื่อของผู้รับ
+    avatar: string; // รูปโปรไฟล์ของผู้รับ
+  };
   timestamp: string;
 }
 
+// Use an environment variable for the socket URL
 const socket = io("http://localhost:3001");
 
-export default function ChatWindow() {
+interface ChatWindowProps {
+  friendId: string; // ID ของเพื่อน
+  userId: string; // ID ของผู้ใช้
+  friendAvatar: string; // URL ของรูปโปรไฟล์เพื่อน
+  userName: string; // ชื่อผู้ใช้
+}
+
+export default function ChatWindow({ friendId, userId, friendAvatar, userName  }: ChatWindowProps) {
   const [messages, setMessages] = useState<Message[]>([]);
   const [newMessage, setNewMessage] = useState("");
   const [activeComponent, setActiveComponent] = useState<"chatInfo" | "notes">("chatInfo");
 
   useEffect(() => {
-    socket.on("receive_message", (message: Message) => {
+    // ฟังการรับข้อความจากเซิร์ฟเวอร์
+    socket.on("receive_message", (data: { message: Message; friendId: string }) => {
+      const { message } = data;
       setMessages((prevMessages) => [...prevMessages, message]);
     });
+
+    // ฟังเมื่อมีการเชื่อมต่อใหม่
+    socket.emit("join_chat", { userId, friendId }); // ส่งข้อมูลเพื่อเข้าร่วมการแชท
 
     return () => {
       socket.off("receive_message");
     };
-  }, []);
+  }, [friendId, userId]);
 
   const handleSendMessage = () => {
     if (!newMessage.trim()) return;
 
     const message: Message = {
-      id: messages.length + 1,
+      id: uuidv4(), // Use UUID for unique message IDs
       content: newMessage,
       sender: {
-        name: "You",
+        id: userId,
+        name: userName,
         avatar: "https://github.com/shadcn.png",
         isMe: true,
+      },
+      recipient: {
+        id: friendId,
+        name: "", // Removed friend name
+        avatar: friendAvatar, // Use the friend's avatar from props
       },
       timestamp: new Date().toLocaleTimeString("en-US", {
         hour: "2-digit",
@@ -54,20 +80,22 @@ export default function ChatWindow() {
       }),
     };
 
-    socket.emit("send_message", message);
+    // ส่งข้อความไปยังเซิร์ฟเวอร์
+    socket.emit("send_message", { message, friendId });
     setNewMessage("");
   };
 
   return (
     <div className="flex w-full">
       <div className="flex flex-col bg-gray-100 rounded-lg flex-1 mr-4">
+        {/* Header */}
         <div className="border-b p-4 flex items-center justify-between bg-white">
           <div className="flex items-center gap-3">
             <Avatar>
-              <img src="https://github.com/shadcn.png" alt="Contact" />
+              <img src={friendAvatar} alt="Friend" /> {/* Dynamic friend avatar */}
             </Avatar>
             <div>
-              <h3 className="font-medium">John Doe</h3>
+              <h3 className="font-medium">Friend</h3> {/* Static name or dynamic if needed */}
               <span className="text-xs text-green-500">● Online</span>
             </div>
           </div>
@@ -81,24 +109,29 @@ export default function ChatWindow() {
           </div>
         </div>
 
+        {/* Messages */}
         <ScrollArea className="flex-1 p-4 bg-gray-50">
           <div className="space-y-4">
             {messages.map((message) => (
               <div
                 key={message.id}
-                className={`flex gap-3 ${message.sender.isMe ? "flex-row-reverse" : "flex-row"}`}
+                className={`flex gap-3 ${message.sender.id === userId ? "flex-row-reverse" : "flex-row"}`}
               >
                 <Avatar className="w-8 h-8">
                   <img src={message.sender.avatar} alt={message.sender.name} />
                 </Avatar>
                 <div className={`group relative max-w-[75%]`}>
-                  {!message.sender.isMe && (
+                  {message.sender.id === userId ? (
+                    <p className="text-xs text-muted-foreground mb-1 text-right">
+                      You
+                    </p>
+                  ) : (
                     <p className="text-xs text-muted-foreground mb-1">
                       {message.sender.name}
                     </p>
                   )}
                   <div
-                    className={`rounded-2xl px-4 py-2 ${message.sender.isMe ? "bg-blue-500 text-white" : "bg-gray-200 text-gray-800"}`}
+                    className={`rounded-2xl px-4 py-2 ${message.sender.id === userId ? "bg-blue-500 text-white" : "bg-gray-200 text-gray-800"}`}
                   >
                     <p className="text-sm">{message.content}</p>
                   </div>
@@ -111,6 +144,7 @@ export default function ChatWindow() {
           </div>
         </ScrollArea>
 
+        {/* Message Input */}
         <div className="border-t p-4 bg-white">
           <div className="flex items-center gap-2">
             <Button variant="ghost" size="icon">
@@ -140,10 +174,11 @@ export default function ChatWindow() {
         </div>
       </div>
 
+      {/* Chat Info or Notes */}
       <div className="w-96 flex-shrink-0 border-l pl-4">
         {activeComponent === "chatInfo" ? (
           <ChatInfo
-            name="John Doe"
+            name="Friend" // Static name or use an appropriate dynamic name if needed
             email="pleo2003@gmail.com"
             location="Bangkok, Thailand"
             birthday="9 Aug, 2003"
