@@ -4,9 +4,11 @@ import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Image, Send, Smile, Paperclip, Menu, Flag } from "lucide-react";
 import { useEffect, useState } from "react";
-import ChatInfo from "@/components/ChatInfo";
-import NotesComponent from "@/components/Notes";
-import { io } from "socket.io-client";
+import ChatInfo from "@/components/ChatInfo"; // Import ChatInfo
+import NotesComponent from "@/components/Notes"; // Import Notes component
+import { getFriend, getGroup } from "@/api/contact";
+import { User } from "@/types/user.types";
+import { Group } from "@/types/group.type";
 
 interface Message {
   id: number;
@@ -85,7 +87,11 @@ export default function ChatWindow({ userData }: ChatWindowProps) {
               <img src={userData.avatar} alt="Contact" /> {/* แสดงอวตาร์ของผู้ใช้ */}
             </Avatar>
             <div>
-              <h3 className="font-medium">{userData.name}</h3> {/* แสดงชื่อผู้ใช้ */}
+              <h3 className="font-medium">{
+                friend ? friend?.given_name + " " + friend?.given_name :
+                group ? group?.name : ""
+
+                }</h3>
               <span className="text-xs text-green-500">● Online</span>
             </div>
           </div>
@@ -104,7 +110,9 @@ export default function ChatWindow({ userData }: ChatWindowProps) {
             {messages.map((message) => (
               <div
                 key={message.id}
-                className={`flex gap-3 ${message.sender.isMe ? "flex-row-reverse" : "flex-row"}`}
+                className={`flex gap-3 ${
+                  message.sender.isMe ? "flex-row-reverse" : "flex-row"
+                }`}
               >
                 <Avatar className="w-8 h-8">
                   <img src={message.sender.avatar} alt={message.sender.name} />
@@ -116,7 +124,11 @@ export default function ChatWindow({ userData }: ChatWindowProps) {
                     </p>
                   )}
                   <div
-                    className={`rounded-2xl px-4 py-2 ${message.sender.isMe ? "bg-blue-500 text-white" : "bg-gray-200 text-gray-800"}`}
+                    className={`rounded-2xl px-4 py-2 ${
+                      message.sender.isMe
+                        ? "bg-blue-500 text-white"
+                        : "bg-gray-200 text-gray-800"
+                    }`}
                   >
                     <p className="text-sm">{message.content}</p>
                   </div>
@@ -151,7 +163,10 @@ export default function ChatWindow({ userData }: ChatWindowProps) {
             <Button variant="ghost" size="icon">
               <Smile className="h-5 w-5 text-gray-500" />
             </Button>
-            <Button onClick={handleSendMessage} className="bg-blue-500 text-white">
+            <Button
+              onClick={handleSendMessage}
+              className="bg-blue-500 text-white"
+            >
               Send
             </Button>
           </div>
@@ -161,11 +176,11 @@ export default function ChatWindow({ userData }: ChatWindowProps) {
       <div className="w-96 flex-shrink-0 border-l pl-4">
         {activeComponent === "chatInfo" ? (
           <ChatInfo
-            name={userData.name}
-            email={userData.email}
-            location={userData.location}
-            birthday={userData.birthday}
-            onNotesClick={() => setActiveComponent("notes")}
+            name={friend ? `${friend?.given_name} ${friend?.given_name}` : `${group?.name}`}
+            email={friend ? `${friend?.email}` : ""}
+            location={friend ? `${friend?.province || "" } ${friend?.country || ""}` : ""}
+            birthday={friend ? `${friend?.date_of_birth}` : ""}
+            onNotesClick={() => setActiveComponent("notes")} // Change to notes component
           />
         ) : (
           <NotesComponent onBackClick={() => setActiveComponent("chatInfo")} />
@@ -173,4 +188,6 @@ export default function ChatWindow({ userData }: ChatWindowProps) {
       </div>
     </div>
   );
-}
+};
+
+export default ChatWindow;
