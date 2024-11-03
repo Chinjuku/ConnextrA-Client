@@ -1,10 +1,30 @@
+import { useEffect, useState } from "react";
+import { useParams } from "react-router-dom"; // นำเข้า useParams
 import { Search } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Avatar } from "@/components/ui/avatar";
 import Navigation from '@/components/Nav';
+import { User } from "@/types/user.types"; // สมมติว่ามีการสร้าง type User
+import { getNotFriends } from "@/api/user"; // นำเข้า getNotFriends API
 
 export default function FindFriend() {
+  const { userId } = useParams(); // รับ userId จาก URL
+  const [notFriends, setNotFriends] = useState<User[]>([]); // สร้าง state เพื่อเก็บข้อมูลผู้ใช้ที่ไม่เป็นเพื่อน
+
+  useEffect(() => {
+    const fetchNotFriends = async () => {
+      try {
+        const users = await getNotFriends(Number(userId)); // ดึงข้อมูลผู้ใช้ที่ไม่เป็นเพื่อน
+        setNotFriends(users); // อัปเดต state ด้วยข้อมูลที่ดึงมา
+      } catch (error) {
+        console.error("Error fetching not friends:", error);
+      }
+    };
+
+    fetchNotFriends();
+  }, [userId]);
+
   return (
     <div className="min-h-screen bg-gray-50 overflow-hidden ">
       <Navigation />
@@ -41,12 +61,12 @@ export default function FindFriend() {
           <div className="flex-1">
             <h2 className="font-semibold text-indigo-700 mb-4">Friend Suggestions</h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-              {Array.from({ length: 9 }).map((_, i) => (
-                <div key={i} className="bg-white p-4 rounded-lg shadow-sm flex flex-col items-center">
+              {notFriends.map((user) => (
+                <div key={user.id} className="bg-white p-4 rounded-lg shadow-sm flex flex-col items-center">
                   <Avatar className="w-20 h-20 mb-3">
-                    <img src="https://github.com/shadcn.png" alt="Puttaraporn Jitpranee" />
+                    <img src={user.image_url} alt={`${user.given_name} ${user.family_name}`} />
                   </Avatar>
-                  <h3 className="font-medium mb-2">Puttaraporn Jitpranee</h3>
+                  <h3 className="font-medium mb-2">{user.given_name} {user.family_name}</h3>
                   <Button variant="outline" className="w-full">
                     Add friend
                   </Button>

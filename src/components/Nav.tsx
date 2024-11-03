@@ -17,6 +17,7 @@ import { UserContext } from "@/context/UserContext";
 const Navigation = () => {
   const { userData, isAuthenticated } = useContext(UserContext);
   const location = useLocation();
+  const userId = userData?.id; // สมมติว่า userData มี userId อยู่
 
   return (
     <header className="border-b">
@@ -43,9 +44,9 @@ const Navigation = () => {
             Chat
           </Link>
           <Link
-            to="/find-friend"
+            to={`/find-friend/${userId}`} // ใช้ userId ในลิงก์
             className={`pb-1 font-medium ${
-              location.pathname === '/find-friend' 
+              location.pathname.startsWith('/find-friend') // เปลี่ยนเพื่อรองรับพาธที่มี userId
                 ? 'text-indigo-950 border-b-2 border-indigo-950' 
                 : 'text-muted-foreground hover:text-indigo-950'
             }`}
@@ -85,7 +86,6 @@ const Navigation = () => {
               <AvatarFallback>{userData?.given_name?.[0] || "U"}</AvatarFallback>
             </Avatar>
             <div className="text-sm">
-              
               <p className="font-medium">{userData?.given_name || "User Name"}</p>
               <p className="text-xs text-muted-foreground">{userData?.email || "User Email"}</p>
             </div>

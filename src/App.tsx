@@ -1,4 +1,3 @@
-import React from 'react';
 import { Route, Routes, Navigate } from 'react-router-dom';
 import Chat from '@/pages/Chat';
 import FindFriend from '@/pages/FindFriend';
@@ -17,15 +16,16 @@ const PrivateRoute = ({ children }: { children: JSX.Element }) => {
   return isAuthenticated ? children : <Navigate to="/login" />;
 };
 
+
 // App Component
-const App: React.FC = () => {
+const App = () => {
   return (
     <Routes>
       <Route path="/login" element={<Authenticate />} />
       
       {/* หน้าอื่นที่ต้องการการตรวจสอบสิทธิ์ */}
       <Route path="/chat" element={<PrivateRoute><Chat /></PrivateRoute>} />
-      <Route path="/find-friend" element={<PrivateRoute><FindFriend /></PrivateRoute>} />
+      <Route path="/find-friend/:userId" element={<PrivateRoute><FindFriend /></PrivateRoute>} />
       <Route path="/find-group" element={<PrivateRoute><FindGroup /></PrivateRoute>} />
       <Route path="/create-group" element={<PrivateRoute><CreateGroup /></PrivateRoute>} />
       <Route path="/dashboard" element={<PrivateRoute><Dashboard /></PrivateRoute>} />
