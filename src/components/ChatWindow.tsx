@@ -3,9 +3,10 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Image, Send, Smile, Paperclip, Menu, Flag } from "lucide-react";
-import { useState } from "react";
-import ChatInfo from "@/components/ChatInfo"; // Import ChatInfo
-import NotesComponent from "@/components/Notes"; // Import Notes component
+import { useEffect, useState } from "react";
+import ChatInfo from "@/components/ChatInfo";
+import NotesComponent from "@/components/Notes";
+import { io } from "socket.io-client";
 
 interface Message {
   id: number;
@@ -18,32 +19,40 @@ interface Message {
   timestamp: string;
 }
 
-export default function ChatWindow() {
-  const [messages, setMessages] = useState<Message[]>([
-    {
-      id: 1,
-      content: "Hi, how are you?",
-      sender: {
-        name: "John Doe",
-        avatar: "https://github.com/shadcn.png",
-        isMe: false,
-      },
-      timestamp: "09:41",
-    },
-    {
-      id: 2,
-      content: "I'm good, thanks! How about you?",
-      sender: {
-        name: "You",
-        avatar: "https://github.com/shadcn.png",
-        isMe: true,
-      },
-      timestamp: "09:42",
-    },
-  ]);
+interface UserData {
+  id: number;
+  name: string;
+  avatar: string;
+  email: string;
+  location: string;
+  birthday: string;
+}
 
+// สมมติว่า userData มาจาก props
+interface ChatWindowProps {
+  userData: UserData;
+}
+
+const socket = io("http://localhost:3001");
+
+export default function ChatWindow({ userData }: ChatWindowProps) {
+  const [messages, setMessages] = useState<Message[]>([]);
   const [newMessage, setNewMessage] = useState("");
-  const [activeComponent, setActiveComponent] = useState<"chatInfo" | "notes">("chatInfo"); // State to switch between components
+  const [activeComponent, setActiveComponent] = useState<"chatInfo" | "notes">("chatInfo");
+
+  useEffect(() => {
+    socket.on("connect", () => {
+      console.log("Connected to Socket.IO server");
+    });
+
+    socket.on("receive_message", (message: Message) => {
+      setMessages((prevMessages) => [...prevMessages, message]);
+    });
+
+    return () => {
+      socket.off("receive_message");
+    };
+  }, []);
 
   const handleSendMessage = () => {
     if (!newMessage.trim()) return;
@@ -52,8 +61,8 @@ export default function ChatWindow() {
       id: messages.length + 1,
       content: newMessage,
       sender: {
-        name: "You",
-        avatar: "https://github.com/shadcn.png",
+        name: userData.name, // ใช้ชื่อผู้ใช้จาก userData
+        avatar: userData.avatar, // ใช้ URL อวตาร์จาก userData
         isMe: true,
       },
       timestamp: new Date().toLocaleTimeString("en-US", {
@@ -63,22 +72,20 @@ export default function ChatWindow() {
       }),
     };
 
-    setMessages([...messages, message]);
+    socket.emit("send_message", message);
     setNewMessage("");
   };
 
   return (
     <div className="flex w-full">
-      {/* Chat Area */}
       <div className="flex flex-col bg-gray-100 rounded-lg flex-1 mr-4">
-        {/* Chat Header */}
         <div className="border-b p-4 flex items-center justify-between bg-white">
           <div className="flex items-center gap-3">
             <Avatar>
-              <img src="https://github.com/shadcn.png" alt="Contact" />
+              <img src={userData.avatar} alt="Contact" /> {/* แสดงอวตาร์ของผู้ใช้ */}
             </Avatar>
             <div>
-              <h3 className="font-medium">John Doe</h3>
+              <h3 className="font-medium">{userData.name}</h3> {/* แสดงชื่อผู้ใช้ */}
               <span className="text-xs text-green-500">● Online</span>
             </div>
           </div>
@@ -92,7 +99,6 @@ export default function ChatWindow() {
           </div>
         </div>
 
-        {/* Messages Area */}
         <ScrollArea className="flex-1 p-4 bg-gray-50">
           <div className="space-y-4">
             {messages.map((message) => (
@@ -123,7 +129,6 @@ export default function ChatWindow() {
           </div>
         </ScrollArea>
 
-        {/* Input Area */}
         <div className="border-t p-4 bg-white">
           <div className="flex items-center gap-2">
             <Button variant="ghost" size="icon">
@@ -153,18 +158,17 @@ export default function ChatWindow() {
         </div>
       </div>
 
-      {/* Chat Info or Notes (Right Side) */}
       <div className="w-96 flex-shrink-0 border-l pl-4">
         {activeComponent === "chatInfo" ? (
           <ChatInfo
-            name="John Doe"
-            email="pleo2003@gmail.com"
-            location="Bangkok, Thailand"
-            birthday="9 Aug, 2003"
-            onNotesClick={() => setActiveComponent("notes")} // Change to notes component
+            name={userData.name}
+            email={userData.email}
+            location={userData.location}
+            birthday={userData.birthday}
+            onNotesClick={() => setActiveComponent("notes")}
           />
         ) : (
-          <NotesComponent onBackClick={() => setActiveComponent("chatInfo")} /> // Pass back click handler
+          <NotesComponent onBackClick={() => setActiveComponent("chatInfo")} />
         )}
       </div>
     </div>

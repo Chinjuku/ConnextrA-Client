@@ -35,7 +35,7 @@ export default function Chat() {
                             </div>
                         </div>
                     ) : (
-                        <ChatWindow friend={selectedFriend} /> // Pass the selected friend to ChatWindow
+                        <ChatWindow userData={userData} /> // Pass the selected friend to ChatWindow
                     )}
                 </main>
             </div>
