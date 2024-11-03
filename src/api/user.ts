@@ -18,11 +18,9 @@ export const editAccount = async (userId: number, userData: object) => {
 
 // Get all friends
 export const getAllFriends = async (userId: number) => {
-  const response = await axios.get(`${API_BASE_URL}/user/all-friends`, {
-    params: { userId },
-  });
-  return response.data;
-};
+    const response = await axios.get(`${API_BASE_URL}/user/all-friends/${userId}`);
+    return response.data;
+  };
 
 // Get users who are not friends yet
 // ใน api/user.ts
