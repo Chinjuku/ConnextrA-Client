@@ -17,13 +17,13 @@ const Profile = () => {
         lastName: "",
         email: "",
         phone: "",
-        province: "", // Changed from state to province
-        country: "", // New field
-        dob: "", // New field
+        province: "", 
+        country: "", 
+        dob: "",
         about: ""
     });
 
-    const capitalize = (str) => {
+    const capitalize = (str: string | null) => {
         if (!str) return "";
         return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
     };
@@ -35,7 +35,7 @@ const Profile = () => {
                 firstName: capitalize(userData.given_name) || "-",
                 lastName: capitalize(userData.family_name) || "-",
                 email: userData.email || "email@example.com",
-                phone: userData.phone || "-",
+                phone: userData.phone || "0",
                 province: userData.province || "-", // Changed to province
                 country: userData.country || "-", // New field
                 dob: userData.date_of_birth || "-", // New field
