@@ -1,3 +1,4 @@
+import { useContext } from "react";
 import { Link, useLocation } from 'react-router-dom';
 import { MessageSquare, Settings } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -11,8 +12,10 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Logout } from '@/components/Logout';
+import { UserContext } from "@/context/UserContext";
 
 const Navigation = () => {
+  const { userData, isAuthenticated } = useContext(UserContext);
   const location = useLocation();
 
   return (
@@ -64,28 +67,27 @@ const Navigation = () => {
         <div className="flex items-center gap-3">
           <DropdownMenu>
             <DropdownMenuTrigger>
-                <Button variant="ghost" size="icon">
-                    <Settings className="w-5 h-5" />
-                </Button>
+              <Button variant="ghost" size="icon">
+                <Settings className="w-5 h-5" />
+              </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent>
-                <DropdownMenuLabel>My Account</DropdownMenuLabel>
-                <DropdownMenuSeparator />
-                <Link to='/profile'><DropdownMenuItem className='cursor-pointer'>Profile</DropdownMenuItem></Link>
-                <DropdownMenuItem className='cursor-pointer'>Billing</DropdownMenuItem>
-                <DropdownMenuItem className='cursor-pointer'>Team</DropdownMenuItem>
-                <Link to="/dashboard"><DropdownMenuItem className='cursor-pointer'>Dashboard</DropdownMenuItem></Link>
-                <Logout />
+              <DropdownMenuLabel>My Account</DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              <Link to='/profile'><DropdownMenuItem className='cursor-pointer'>Profile</DropdownMenuItem></Link>
+              <Link to="/dashboard"><DropdownMenuItem className='cursor-pointer'>Dashboard</DropdownMenuItem></Link>
+              <Logout />
             </DropdownMenuContent>
           </DropdownMenu>
           <div className="flex items-center gap-2">
             <Avatar>
-              <AvatarImage src="/placeholder-user.jpg" alt="Bill Gates" />
-              <AvatarFallback>BG</AvatarFallback>
+              <AvatarImage src={userData?.image_url || "/placeholder-user.jpg"} alt={userData?.given_name || "User"} />
+              <AvatarFallback>{userData?.given_name?.[0] || "U"}</AvatarFallback>
             </Avatar>
             <div className="text-sm">
-              <p className="font-medium">Bill Gates</p>
-              <p className="text-xs text-muted-foreground">Account Setting</p>
+              
+              <p className="font-medium">{userData?.given_name || "User Name"}</p>
+              <p className="text-xs text-muted-foreground">{userData?.email || "User Email"}</p>
             </div>
           </div>
         </div>
