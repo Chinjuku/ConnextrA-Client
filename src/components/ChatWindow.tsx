@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Image, Smile, Paperclip, Menu, Flag } from "lucide-react";
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, useContext } from "react";
 import ChatInfo from "@/components/ChatInfo";
 import NotesComponent from "@/components/Notes";
 import { io } from "socket.io-client";
@@ -13,6 +13,9 @@ import { User } from "@/types/user.types";
 import { Group } from "@/types/group.type";
 import { getFriend, getGroup } from "@/api/contact";
 import moment from "moment";
+import { getMessages } from "@/api/message";
+import { Messages } from "@/types/message.types";
+import { UserContext } from "@/context/UserContext";
 
 interface Message {
   id: string;
@@ -47,6 +50,7 @@ export default function ChatWindow({
   groupId,
   userName,
 }: ChatWindowProps) {
+  const { userData } = useContext(UserContext);
   const [messages, setMessages] = useState<Message[]>([]);
   const [newMessage, setNewMessage] = useState("");
   const [emojiPickerOpen, setEmojiPickerOpen] = useState(false);
@@ -55,6 +59,7 @@ export default function ChatWindow({
   );
   const [friend, setFriend] = useState<User | null>(null);
   const [group, setGroup] = useState<Group | null>(null);
+  const [chats, setChat] = useState<Messages[]>([]);
 
   const scrollRef = useRef<HTMLDivElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -72,6 +77,21 @@ export default function ChatWindow({
       messagesEndRef.current.scrollIntoView({ behavior: "smooth" });
     }
   };
+  useEffect(() => {
+    if (messagesEndRef.current) {
+      messagesEndRef.current.scrollIntoView();
+    }
+  }, [chats, messages]);
+
+  useEffect(() => {
+    if (friendId) {
+      const fetchFriend = async () => {
+        const chatFriend = await getMessages(userId, Number(friendId), null);
+        setChat(chatFriend);
+      };
+      fetchFriend();
+    }
+  }, [friendId, userId]);
 
   useEffect(() => {
     if (friendId) {
@@ -142,12 +162,12 @@ export default function ChatWindow({
     socket.emit("send_message", { message, friendId });
     setNewMessage("");
   };
-  console.log(group);
+  console.log(friend);
   const handleEmojiSelect = (emojiData: EmojiClickData) => {
     setNewMessage((prev) => prev + emojiData.emoji);
     setEmojiPickerOpen(false);
   };
-
+  console.log(chats);
   return (
     <div className="flex w-full">
       <div className="flex flex-col bg-gray-100 rounded-lg flex-1 mr-4 h-[calc(100vh-70px)]">
@@ -179,6 +199,55 @@ export default function ChatWindow({
 
         <ScrollArea className="flex-1 p-4 bg-gray-50" ref={scrollRef}>
           <div className="space-y-4">
+            {chats.map((message) => (
+              <div
+                key={message.messageId}
+                className={`flex gap-3 ${
+                  Number(message.senderId) === userId
+                    ? "flex-row-reverse"
+                    : "flex-row"
+                }`}
+              >
+                {Number(message.senderId) === userId ? (
+                  <Avatar className="w-8 h-8">
+                    <img
+                      src={userData?.image_url}
+                      alt={`${userData?.given_name}`}
+                    />
+                  </Avatar>
+                ) : (
+                  <Avatar className="w-8 h-8">
+                    <img
+                      src={friend?.image_url}
+                      alt={`${friend?.given_name}`}
+                    />
+                  </Avatar>
+                )}
+                <div className={`group relative max-w-[75%]`}>
+                  {Number(message.senderId) === userId ? (
+                    <p className="text-xs text-muted-foreground mb-1 text-right">
+                      You
+                    </p>
+                  ) : (
+                    <p className="text-xs text-muted-foreground mb-1">
+                      {friend?.given_name} {friend?.family_name}
+                    </p>
+                  )}
+                  <div
+                    className={`rounded-2xl px-4 py-2 ${
+                      Number(message.senderId) === userId
+                        ? "bg-blue-500 text-white"
+                        : "bg-gray-200 text-gray-800"
+                    }`}
+                  >
+                    <p className="text-sm">{message.content}</p>
+                  </div>
+                  <span className="text-[10px] text-gray-500 px-2">
+                    {moment(message.timestamp).format("H:m")}
+                  </span>
+                </div>
+              </div>
+            ))}
             {messages.map((message) => (
               <div
                 key={message.id}
@@ -187,7 +256,7 @@ export default function ChatWindow({
                 }`}
               >
                 <Avatar className="w-8 h-8">
-                  <img src={message.sender.avatar} alt={message.sender.name} />
+                  <img src={userData?.image_url} alt={message.sender.name} />
                 </Avatar>
                 <div className={`group relative max-w-[75%]`}>
                   {message.sender.id === userId ? (
