@@ -43,7 +43,6 @@ export default function Chat() {
                         <ChatWindow 
                             friendId={friendId}
                             groupId={groupId}
-                            userId={id}
                             userName={userName} // ส่ง given_name มาด้วย
                         />
                     )}
