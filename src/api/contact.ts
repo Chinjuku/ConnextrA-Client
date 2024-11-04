@@ -33,7 +33,6 @@ export const getAllBlocks = async (userId: number) => {
 export const unBlocked = async (userId: number, friendId: number) => {
     try {
         const response = await axios.delete(`${import.meta.env.VITE_BACKEND_URL}/user/unblock/${userId}/${friendId}`);
-        console.log(response.data)
         return response.data;
     } catch (err) {
         console.error("Error fetching friends:", err);
@@ -44,7 +43,6 @@ export const unBlocked = async (userId: number, friendId: number) => {
 export const getFriend = async (friendId: number) => {
     try {
         const response = await axios.get(`${import.meta.env.VITE_BACKEND_URL}/user/friend-account/${friendId}`);
-        console.log(response.data)
         return response.data;
     } catch (err) {
         console.error("Error fetching friends:", err);
@@ -54,8 +52,7 @@ export const getFriend = async (friendId: number) => {
 
 export const getGroup = async (groupId: number) => {
     try {
-        const response = await axios.get(`${import.meta.env.VITE_BACKEND_URL}/group/${groupId}`);
-        console.log(response.data)
+        const response = await axios.get(`${import.meta.env.VITE_BACKEND_URL}/group/select/${groupId}`);
         return response.data;
     } catch (err) {
         console.error("Error fetching friends:", err);

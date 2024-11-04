@@ -35,7 +35,7 @@ const CreateGroup = () => {
     const fetchAllFriends = async () => {
       if (userId) {
         const response = await fetch(
-          `http://localhost:3000/user/all-friends/${userId}`
+          `${import.meta.env.VITE_BACKEND_URL}/user/all-friends/${userId}`
         );
         if (response.ok) {
           const data: Friend[] = await response.json();
@@ -73,7 +73,7 @@ const CreateGroup = () => {
       return; // ออกจากฟังก์ชัน
     }
 
-    const response = await fetch("http://localhost:3000/group/create", {
+    const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/group/create`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

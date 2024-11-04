@@ -29,7 +29,7 @@ export default function FindGroup() {
   const fetchSuggestedGroups = async () => {
     try {
       const response = await axios.get(
-        `http://localhost:3000/group/find/${userId}`,
+        `${import.meta.env.VITE_BACKEND_URL}/group/find/${userId}`,
         {
           params: { q: searchQuery },
         }
@@ -56,7 +56,7 @@ export default function FindGroup() {
     try {
       // เพิ่มกลุ่มลงในฐานข้อมูล
       await axios.post(
-        `http://localhost:3000/group/join/${group.id}/${userId}`
+        `${import.meta.env.VITE_BACKEND_URL}/group/join/${group.id}/${userId}`
       );
       addToRecentGroups(group);
       setSuggestedGroups((prevSuggestedGroups) => 

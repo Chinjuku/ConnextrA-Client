@@ -65,7 +65,7 @@ export default function Profile(){
         return;
       }
 
-      const apiUrl = `http://localhost:3000/user/edit/${userData.id}`;
+      const apiUrl = `${import.meta.env.VITE_BACKEND_URL}/user/edit/${userData.id}`;
       const updatedUserData = {
         given_name: formData.firstName,
         family_name: formData.lastName,

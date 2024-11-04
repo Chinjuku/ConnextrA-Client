@@ -84,7 +84,8 @@ const Sidebar: React.FC<SidebarProps> = ({
                             <form action="/chat" method="GET" className="w-full h-full flex items-center gap-3 p-2 rounded-lg cursor-pointer hover:bg-gray-200">
                                 <input type="hidden" name="friendId" value={friend.id} />
                                 <button type="submit" className="w-full h-full flex items-center gap-3">
-                                    <Users className="w-6 h-6 text-gray-600" />
+                                    {/* <Users className="w-6 h-6 text-gray-600" /> */}
+                                    <img src={friend.image_url} className="w-7 h-7 bg-cover rounded-full" alt={`${friend.given_name}`} />
                                     <p className="text-sm font-medium">{friend.given_name} {friend.family_name}</p>
                                 </button>
                             </form>
