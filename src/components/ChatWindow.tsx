@@ -139,7 +139,7 @@ export default function ChatWindow({
       }),
     };
 
-    socket.emit("send_message", { message, friendId, groupId });
+    socket.emit("send_message", { message, friendId });
     setNewMessage("");
   };
   console.log(group);
