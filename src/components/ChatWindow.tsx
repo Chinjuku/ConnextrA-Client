@@ -55,7 +55,12 @@ export default function ChatWindow({ friendId, userId, groupId, friendAvatar, us
   useEffect(() => {
     socket.on("receive_message", (data: { message: Message; friendId: string }) => {
       const { message } = data;
-      setMessages((prevMessages) => [...prevMessages, message]);
+      // Check if message structure is valid
+      if (message && message.sender) {
+        setMessages((prevMessages) => [...prevMessages, message]);
+      } else {
+        console.error("Received message is invalid:", data);
+      }
     });
 
     socket.emit("join_chat", { userId, friendId });
@@ -76,15 +81,15 @@ export default function ChatWindow({ friendId, userId, groupId, friendAvatar, us
       id: uuidv4(),
       content: newMessage,
       sender: {
-        id: userId,
+        id: userId!,
         name: userName,
         avatar: "https://github.com/shadcn.png",
         isMe: true,
       },
       recipient: {
-        id: friendId,
+        id: friendId!,
         name: "",
-        avatar: friendAvatar,
+        avatar: friendAvatar!,
       },
       timestamp: new Date().toLocaleTimeString("en-US", {
         hour: "2-digit",
@@ -99,7 +104,7 @@ export default function ChatWindow({ friendId, userId, groupId, friendAvatar, us
 
   const handleEmojiSelect = (emojiData: EmojiClickData) => {
     setNewMessage((prev) => prev + emojiData.emoji);
-    setEmojiPickerOpen(false); // ปิด emoji picker หลังจากเลือก
+    setEmojiPickerOpen(false);
   };
 
   return (
@@ -142,9 +147,7 @@ export default function ChatWindow({ friendId, userId, groupId, friendAvatar, us
                     <p className="text-xs text-muted-foreground mb-1">{message.sender.name}</p>
                   )}
                   <div
-                    className={`rounded-2xl px-4 py-2 ${
-                      message.sender.id === userId ? "bg-blue-500 text-white" : "bg-gray-200 text-gray-800"
-                    }`}
+                    className={`rounded-2xl px-4 py-2 ${message.sender.id === userId ? "bg-blue-500 text-white" : "bg-gray-200 text-gray-800"}`}
                   >
                     <p className="text-sm">{message.content}</p>
                   </div>
