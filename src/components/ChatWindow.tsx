@@ -13,9 +13,10 @@ import { User } from "@/types/user.types";
 import { Group } from "@/types/group.type";
 import { getFriend, getGroup } from "@/api/contact";
 import moment from "moment";
-import { getMessages } from "@/api/message";
+import { getGroupMessages, getMessages } from "@/api/message";
 import { Messages } from "@/types/message.types";
 import { UserContext } from "@/context/UserContext";
+import { ChatItem } from "@/components/ChatItem";
 
 interface Message {
   id: string;
@@ -39,14 +40,12 @@ const socket = io(import.meta.env.VITE_SOCKET_URL);
 
 interface ChatWindowProps {
   friendId: string | null;
-  userId: number;
   groupId: string | null;
   userName: string;
 }
 
 export default function ChatWindow({
   friendId,
-  userId,
   groupId,
   userName,
 }: ChatWindowProps) {
@@ -60,6 +59,7 @@ export default function ChatWindow({
   const [friend, setFriend] = useState<User | null>(null);
   const [group, setGroup] = useState<Group | null>(null);
   const [chats, setChat] = useState<Messages[]>([]);
+  const userId = userData?.id ? userData.id : 0
 
   const scrollRef = useRef<HTMLDivElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -86,12 +86,18 @@ export default function ChatWindow({
   useEffect(() => {
     if (friendId) {
       const fetchFriend = async () => {
-        const chatFriend = await getMessages(userId, Number(friendId), null);
+        const chatFriend = await getMessages(userId, Number(friendId));
         setChat(chatFriend);
       };
       fetchFriend();
+    } else if (groupId) {
+      const fetchGroup = async () => {
+        const chatGroup = await getGroupMessages(userId, Number(groupId));
+        setChat(chatGroup);
+      };
+      fetchGroup();
     }
-  }, [friendId, userId]);
+  }, [friendId, userId, userData?.id, groupId]);
 
   useEffect(() => {
     if (friendId) {
@@ -108,7 +114,7 @@ export default function ChatWindow({
       fetchFriend();
     }
   }, [friendId, groupId]);
-
+  
   useEffect(() => {
     socket.on(
       "receive_message",
@@ -167,7 +173,6 @@ export default function ChatWindow({
     setNewMessage((prev) => prev + emojiData.emoji);
     setEmojiPickerOpen(false);
   };
-  console.log(chats);
   return (
     <div className="flex w-full">
       <div className="flex flex-col bg-gray-100 rounded-lg flex-1 mr-4 h-[calc(100vh-70px)]">
@@ -199,55 +204,15 @@ export default function ChatWindow({
 
         <ScrollArea className="flex-1 p-4 bg-gray-50" ref={scrollRef}>
           <div className="space-y-4">
-            {chats.map((message) => (
-              <div
-                key={message.messageId}
-                className={`flex gap-3 ${
-                  Number(message.senderId) === userId
-                    ? "flex-row-reverse"
-                    : "flex-row"
-                }`}
-              >
-                {Number(message.senderId) === userId ? (
-                  <Avatar className="w-8 h-8">
-                    <img
-                      src={userData?.image_url}
-                      alt={`${userData?.given_name}`}
-                    />
-                  </Avatar>
-                ) : (
-                  <Avatar className="w-8 h-8">
-                    <img
-                      src={friend?.image_url}
-                      alt={`${friend?.given_name}`}
-                    />
-                  </Avatar>
-                )}
-                <div className={`group relative max-w-[75%]`}>
-                  {Number(message.senderId) === userId ? (
-                    <p className="text-xs text-muted-foreground mb-1 text-right">
-                      You
-                    </p>
-                  ) : (
-                    <p className="text-xs text-muted-foreground mb-1">
-                      {friend?.given_name} {friend?.family_name}
-                    </p>
-                  )}
-                  <div
-                    className={`rounded-2xl px-4 py-2 ${
-                      Number(message.senderId) === userId
-                        ? "bg-blue-500 text-white"
-                        : "bg-gray-200 text-gray-800"
-                    }`}
-                  >
-                    <p className="text-sm">{message.content}</p>
-                  </div>
-                  <span className="text-[10px] text-gray-500 px-2">
-                    {moment(message.timestamp).format("H:m")}
-                  </span>
-                </div>
-              </div>
-            ))}
+            {chats.map((message) => {
+              
+              return <ChatItem
+                  message={message}
+                  userId={userId}
+                  friend={friend}
+                  groupId={groupId}
+              />
+            })}
             {messages.map((message) => (
               <div
                 key={message.id}
