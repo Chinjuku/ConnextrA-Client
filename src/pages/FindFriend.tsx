@@ -4,7 +4,7 @@ import { Search, HeartCrack } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Avatar } from "@/components/ui/avatar";
-import Navigation from '@/components/Nav';
+import Navigation from "@/components/Nav";
 import { User } from "@/types/user.types";
 import { getNotFriends, addFriend, getAllFriends } from "@/api/user";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -59,8 +59,7 @@ export default function FindFriend() {
 
   const handleAddFriend = async (friendId: number) => {
     try {
-      const response = await addFriend(Number(userId), friendId);
-      console.log(response.message);
+      await addFriend(Number(userId), friendId);
       setNotFriends((prevNotFriends) => prevNotFriends.filter(user => user.id !== friendId));
       const newFriend = notFriends.find(user => user.id === friendId);
       if (newFriend) {
@@ -94,7 +93,6 @@ export default function FindFriend() {
     return <Loading />;
   }
 
-  
   return (
     <div className="min-h-screen bg-gray-50 overflow-hidden">
       <Navigation />
@@ -136,6 +134,7 @@ export default function FindFriend() {
                 />
               </div>
             )}
+
             <div>
               <h2 className="font-semibold mb-4 text-indigo-700 text-lg">Recent Friends</h2>
               <div className="space-y-2">

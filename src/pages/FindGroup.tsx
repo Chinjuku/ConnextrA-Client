@@ -7,6 +7,7 @@ import { Link } from "react-router-dom";
 import axios from "axios";
 import { useEffect, useState, useContext } from "react";
 import { UserContext } from "@/context/UserContext";
+import Loading from "@/components/Loading";  // Assume there's a Loading component for the spinner
 
 interface Group {
   id: number;
@@ -18,25 +19,25 @@ export default function FindGroup() {
   const [searchQuery, setSearchQuery] = useState("");
   const [suggestedGroups, setSuggestedGroups] = useState<Group[]>([]);
   const [recentGroups, setRecentGroups] = useState<Group[]>([]);
+  const [loading, setLoading] = useState(true); // Loading state added here
   const userId = userData?.id;
 
   useEffect(() => {
-    if (userId) {
-      fetchSuggestedGroups();
-    }
+    if (userId) fetchSuggestedGroups();
   }, [userId]);
 
   const fetchSuggestedGroups = async () => {
+    setLoading(true); // Set loading to true before starting fetch
     try {
       const response = await axios.get(
         `${import.meta.env.VITE_BACKEND_URL}/group/find/${userId}`,
-        {
-          params: { q: searchQuery },
-        }
+        { params: { q: searchQuery } }
       );
       setSuggestedGroups(response.data);
     } catch (error) {
       console.error("Error fetching suggested groups:", error);
+    } finally {
+      setLoading(false); // Set loading to false after fetch completes
     }
   };
 
@@ -48,23 +49,17 @@ export default function FindGroup() {
     setRecentGroups(updatedRecentGroups);
   };
 
-  const handleGroupClick = (group: Group) => {
-    addToRecentGroups(group);
-  };
+  const handleGroupClick = (group: Group) => addToRecentGroups(group);
 
   const handleJoinGroup = async (group: Group) => {
     try {
-      // เพิ่มกลุ่มลงในฐานข้อมูล
       await axios.post(
         `${import.meta.env.VITE_BACKEND_URL}/group/join/${group.id}/${userId}`
       );
       addToRecentGroups(group);
-      setSuggestedGroups((prevSuggestedGroups) => 
-        prevSuggestedGroups.filter((g) => g.id !== group.id)
-      );
+      setSuggestedGroups((prev) => prev.filter((g) => g.id !== group.id));
     } catch (error) {
       console.error("Error joining group:", error);
-      // อาจเพิ่มการจัดการข้อผิดพลาดที่นี่
     }
   };
 
@@ -72,6 +67,10 @@ export default function FindGroup() {
     setSearchQuery(e.target.value);
     fetchSuggestedGroups();
   };
+
+  if (loading) {
+    return <Loading />; // Show loading component while data is being fetched
+  }
 
   return (
     <div className="min-h-screen bg-gray-50 overflow-hidden">
