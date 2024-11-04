@@ -3,7 +3,9 @@ import { MapPin, Mail, FileText } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Group } from "@/types/group.type";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
+import { getMember } from "@/api/group";
+import { User } from "@/types/user.types";
 
 interface ChatInfoProps {
   group: Group | null;
@@ -24,27 +26,39 @@ export default function ChatInfo({
   avatar,
   onNotesClick,
 }: ChatInfoProps) {
+  const [members, setMembers] = useState<User[]>([]);
   useEffect(() => {
-
-  }, [group?.id])
+    const fetchMember = async () => {
+      if (!group?.id) return;
+      const res = await getMember(group.id);
+      setMembers(res);
+    };
+    fetchMember();
+  }, [group?.id]);
   return (
     <Card className="w-full bg-gray-50 h-full flex flex-col border-0 shadow-none">
       <CardContent className="flex flex-col items-center justify-between h-full p-6">
         {/* Avatar and User Info */}
         {group ? (
-            <></>
-        //   group.map(friend => (
-        //                 <li key={friend.id}>
-        //                     <form action="/chat" method="GET" className="w-full h-full flex items-center gap-3 p-2 rounded-lg cursor-pointer hover:bg-gray-200">
-        //                         <input type="hidden" name="friendId" value={friend.id} />
-        //                         <button type="submit" className="w-full h-full flex items-center gap-3">
-        //                             {/* <Users className="w-6 h-6 text-gray-600" /> */}
-        //                             <img src={friend.image_url} className="w-7 h-7 bg-cover rounded-full" alt={`${friend.given_name}`} />
-        //                             <p className="text-sm font-medium">{friend.given_name} {friend.family_name}</p>
-        //                         </button>
-        //                     </form>
-        //                 </li>
-        //             ))
+          <div className="w-full">
+            <div className="font-medium text-xl my-2">Member ( {members.length} )</div>
+            <ul className="w-full">
+              {members.map((friend) => (
+                <li key={friend.id}>
+                  <div className="flex items-center gap-3 p-2 rounded-lg hover:bg-gray-200 transition-colors">
+                    <img
+                      src={friend.image_url}
+                      className="w-7 h-7 bg-cover rounded-full"
+                      alt={`${friend.given_name} ${friend.family_name}`}
+                    />
+                    <p className="text-sm font-medium">
+                      {friend.given_name} {friend.family_name}
+                    </p>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          </div>
         ) : (
           <div className="flex flex-col items-center mb-6 text-center">
             {avatar ? (

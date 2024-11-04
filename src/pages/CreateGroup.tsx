@@ -4,7 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Avatar } from "@/components/ui/avatar";
 import Nav from "@/components/Nav";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Alert, AlertTitle } from "@/components/ui/alert";
 import { UserContext } from "@/context/UserContext"; // นำเข้า UserContext
 import { useNavigate } from "react-router-dom"; // ใช้ useNavigate แทน useRouter
 
