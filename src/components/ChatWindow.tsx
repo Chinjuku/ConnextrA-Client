@@ -76,13 +76,13 @@ export default function ChatWindow({ friendId, userId, groupId, friendAvatar, us
       id: uuidv4(),
       content: newMessage,
       sender: {
-        id: userId,
+        id: userId as string,
         name: userName,
         avatar: "https://github.com/shadcn.png",
         isMe: true,
       },
       recipient: {
-        id: friendId,
+        id: friendId as string,
         name: "",
         avatar: friendAvatar,
       },
