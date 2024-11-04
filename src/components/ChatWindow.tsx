@@ -28,6 +28,7 @@ interface Message {
     name: string;
     avatar: string;
   };
+  groupId: number;
   timestamp: string;
 }
 
@@ -130,6 +131,7 @@ export default function ChatWindow({
         name: friendFullname,
         avatar: friendAvatar,
       },
+      groupId: Number(groupId)!,
       timestamp: new Date().toLocaleTimeString("en-US", {
         hour: "2-digit",
         minute: "2-digit",
@@ -137,7 +139,7 @@ export default function ChatWindow({
       }),
     };
 
-    socket.emit("send_message", { message, friendId });
+    socket.emit("send_message", { message, friendId, groupId });
     setNewMessage("");
   };
   console.log(group);
