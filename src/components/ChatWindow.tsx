@@ -308,8 +308,7 @@ export default function ChatWindow({
             onNotesClick={() => {
                 console.log("Friend ID:", friendIdNoteFriend); // ตรวจสอบ ID ที่ส่ง
                 console.log("User ID:", userId); // ตรวจสอบ ID ที่ส่ง
-                console.log(`Given Name: ${userData?.given_name || 'Not provided'}, Family Name: ${userData?.family_name || 'Not provided'}`);
-
+                
 
 
                 setActiveComponent("notes"); // เปลี่ยนไปที่ NotesComponent
