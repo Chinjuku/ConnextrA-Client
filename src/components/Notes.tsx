@@ -1,51 +1,68 @@
-// Notes.tsx
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { X, ArrowLeft } from "lucide-react"; // Import necessary icons
+import { X, ArrowLeft } from "lucide-react";
+import { addNote, getNotesByUserAndFriend, deleteNote } from "@/api/note"; // นำเข้าฟังก์ชัน deleteNote
 
 interface Note {
+    id: number; // เพิ่ม ID ของโน้ต
     title: string;
     content: string;
-    image?: string; // Optional image field
-    timestamp: string; // Added timestamp field
+    timestamp: string;
+    friendId: string | null;
+    userId: string | null;
 }
 
-const Notes = ({ onBackClick }: { onBackClick: () => void }) => {
+const Notes = ({ friendId, userId, onBackClick }: { friendId: string | null; userId: string; onBackClick: () => void }) => {
     const [notesList, setNotesList] = useState<Note[]>([]);
     const [title, setTitle] = useState<string>("");
     const [content, setContent] = useState<string>("");
-    const [image, setImage] = useState<string>(""); // State for the image
+    const [error, setError] = useState<string | null>(null);
 
-    const handleAddNote = () => {
-        if (!title.trim() || !content.trim()) return; // Don't add empty notes
-
-        const newNote: Note = {
-            title,
-            content,
-            image, // Add the image to the note
-            timestamp: new Date().toLocaleString(), // Get the current date and time
+    useEffect(() => {
+        const fetchNotes = async () => {
+            try {
+                const notes = await getNotesByUserAndFriend(userId);
+                setNotesList(notes);
+            } catch (error) {
+                console.error("Error fetching notes:", error);
+            }
         };
 
-        setNotesList([...notesList, newNote]); // Add the note to the list
-        setTitle(""); // Clear the title input
-        setContent(""); // Clear the content input
-        setImage(""); // Clear the image input
+        fetchNotes();
+    }, [userId]);
+
+    const handleAddNote = async () => {
+        if (!title.trim() || !content.trim()) return;
+
+        const newNote: Note = {
+            id: 0, // ID จะถูกกำหนดหลังจากที่โน้ตถูกบันทึก
+            title,
+            content,
+            timestamp: new Date().toLocaleString(),
+            friendId,
+            userId,
+        };
+
+        try {
+            const savedNote = await addNote(newNote);
+            setNotesList((prevNotes) => [...prevNotes, savedNote]);
+            setTitle("");
+            setContent("");
+            setError(null);
+        } catch (error) {
+            console.error("Error adding note:", error);
+            setError("Failed to add note. Please try again.");
+        }
     };
 
-    const handleDeleteNote = (index: number) => {
-        const updatedNotes = notesList.filter((_, i) => i !== index);
-        setNotesList(updatedNotes);
-    };
-
-    const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        if (e.target.files && e.target.files[0]) {
-            const file = e.target.files[0];
-            const reader = new FileReader();
-            reader.onloadend = () => {
-                setImage(reader.result as string); // Set the image data URL
-            };
-            reader.readAsDataURL(file); // Read the file as a data URL
+    const handleDeleteNote = async (noteId: number) => {
+        try {
+            await deleteNote(noteId); // เรียกใช้งานฟังก์ชันลบโน้ต
+            setNotesList((prevNotes) => prevNotes.filter(note => note.id !== noteId)); // อัปเดตสถานะโน้ต
+        } catch (error) {
+            console.error("Error deleting note:", error);
+            setError("Failed to delete note. Please try again.");
         }
     };
 
@@ -54,14 +71,11 @@ const Notes = ({ onBackClick }: { onBackClick: () => void }) => {
             <div className="p-6 border border-gray-300 rounded-lg bg-white">
                 <div className="flex justify-between items-center">
                     <h2 className="text-3xl font-semibold text-gray-800">Notes</h2>
-                    <Button
-                        onClick={onBackClick} // Trigger the back navigation
-                        className="text-blue-600 hover:underline"
-                        variant="ghost" // Use ghost variant for a minimal look
-                    >
-                        <ArrowLeft className="w-5 h-5" /> {/* Back icon */}
+                    <Button onClick={onBackClick} className="text-blue-600 hover:underline" variant="ghost">
+                        <ArrowLeft className="w-5 h-5" />
                     </Button>
                 </div>
+                {error && <div className="text-red-500">{error}</div>}
                 <div className="flex flex-col space-y-4 mt-4">
                     <Input
                         value={title}
@@ -74,39 +88,25 @@ const Notes = ({ onBackClick }: { onBackClick: () => void }) => {
                         onChange={(e) => setContent(e.target.value)}
                         placeholder="Note Content"
                         className="border border-gray-300 rounded-md p-3 text-base focus:outline-none focus:ring-2 focus:ring-blue-500 transition duration-200 h-24 resize-none"
-                        style={{ lineHeight: '1.5' }} // Set consistent line height
+                        style={{ lineHeight: '1.5' }}
                     />
-                    <input
-                        type="file"
-                        accept="image/*"
-                        onChange={handleImageChange}
-                        className="border border-gray-300 rounded-md p-2 text-base focus:outline-none focus:ring-2 focus:ring-blue-500 transition duration-200"
-                    />
-                    <Button
-                        onClick={handleAddNote}
-                        className="bg-blue-600 text-white hover:bg-blue-700 transition duration-200 px-4 py-2 rounded-md self-center"
-                    >
+                    <Button onClick={handleAddNote} className="bg-blue-600 text-white hover:bg-blue-700 transition duration-200 px-4 py-2 rounded-md self-center">
                         Add Note
                     </Button>
                 </div>
             </div>
 
             <div className="space-y-6 mt-6">
-                {notesList.map((note, index) => (
-                    <div key={index} className="p-4 border border-gray-300 rounded-lg bg-white transition duration-200">
-                        <div className="flex justify-end mb-2"> {/* Flex to position the delete button */}
-                            <Button onClick={() => handleDeleteNote(index)} variant="outline" className="text-red-500">
-                                <X className="w-2 h-2" /> {/* Smaller Cross icon size */}
+                {notesList.map((note) => (
+                    <div key={note.id} className="p-4 border border-gray-300 rounded-lg bg-white transition duration-200">
+                        <div className="flex justify-end mb-2">
+                            <Button onClick={() => handleDeleteNote(note.id)} variant="outline" className="text-red-500">
+                                <X className="w-2 h-2" />
                             </Button>
                         </div>
                         <h3 className="font-bold text-lg text-gray-800">{note.title}</h3>
-                        <span className="text-xs text-gray-500">{note.timestamp}</span> {/* Display the timestamp */}
+                        <span className="text-xs text-gray-500">{note.timestamp}</span>
                         <p className="text-gray-700 mb-2">{note.content}</p>
-                        {note.image && (
-                            <div className="flex justify-center"> {/* Centering the image */}
-                                <img src={note.image} alt="Note" className="mt-2 border border-gray-300 rounded-md max-h-48 object-cover" />
-                            </div>
-                        )}
                     </div>
                 ))}
             </div>

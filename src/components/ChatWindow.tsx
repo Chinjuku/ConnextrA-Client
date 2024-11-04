@@ -72,6 +72,7 @@ export default function ChatWindow({
     ? moment(friend.date_of_birth).format("MMMM Do YYYY")
     : "November 11th 2004";
 
+  const friendIdNoteFriend = friendId;
   const scrollToBottom = () => {
     if (messagesEndRef.current) {
       messagesEndRef.current.scrollIntoView({ behavior: "smooth" });
@@ -162,12 +163,12 @@ export default function ChatWindow({
     socket.emit("send_message", { message, friendId });
     setNewMessage("");
   };
-  console.log(friend);
+
   const handleEmojiSelect = (emojiData: EmojiClickData) => {
     setNewMessage((prev) => prev + emojiData.emoji);
     setEmojiPickerOpen(false);
   };
-  console.log(chats);
+
   return (
     <div className="flex w-full">
       <div className="flex flex-col bg-gray-100 rounded-lg flex-1 mr-4 h-[calc(100vh-70px)]">
@@ -329,22 +330,35 @@ export default function ChatWindow({
       </div>
 
       <div className="w-96 flex-shrink-0 border-l pl-4">
-        {activeComponent === "chatInfo" ? (
-          <ChatInfo
+    {activeComponent === "chatInfo" ? (
+        <ChatInfo
             group={group}
             name={friendFullname ? friendFullname : ""}
             email={friend?.email ? friend.email : ""}
             location={
-              friend ? `${friend?.province || ""} ${friend?.country || ""}` : ""
+                friend ? `${friend?.province || ""} ${friend?.country || ""}` : ""
             }
             avatar={friendAvatar}
             birthday={birthday}
-            onNotesClick={() => setActiveComponent("notes")} // Change to notes component
-          />
-        ) : (
-          <NotesComponent onBackClick={() => setActiveComponent("chatInfo")} />
-        )}
-      </div>
+            onNotesClick={() => {
+                console.log("Friend ID:", friendIdNoteFriend); // ตรวจสอบ ID ที่ส่ง
+                console.log("User ID:", userId); // ตรวจสอบ ID ที่ส่ง
+                console.log(`Given Name: ${userData?.given_name || 'Not provided'}, Family Name: ${userData?.family_name || 'Not provided'}`);
+
+
+
+                setActiveComponent("notes"); // เปลี่ยนไปที่ NotesComponent
+            }} // Pass friendId here
+        />
+    ) : (
+        <NotesComponent 
+            friendId={friendIdNoteFriend} 
+            userId={userId}
+            onBackClick={() => setActiveComponent("chatInfo")} 
+        />
+    )}
+</div>
+
     </div>
   );
 }
